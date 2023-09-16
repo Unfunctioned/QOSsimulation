@@ -9,5 +9,5 @@ class WorldGenerator(object):
         self.pointSpawner = RandomPointSpawner()
         self.siteSpawner = SiteSpawner(config)
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
-        #points = pointSpawner.SpawnPoints(self.config.DENSITY_LEVEL)
+        #self.points = pointSpawner.SpawnPoints(self.config.DENSITY_LEVEL)
         
