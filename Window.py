@@ -1,29 +1,19 @@
 import pygame
 from Config import *
-from RandomPointSpawner import *
-from SiteSpawner import *
-from VoronoiDiagram.Voronoi import *
+from WorldGenerator import *
 
 class Window(object):
     
     def __init__(self) -> None:
         self.config = Config()
         self.window_size = self.config.WINDOW_SIZE
-        pygame.init()
         self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
+        self.worldGenerator = WorldGenerator(self.config)
         self.animate()
         
     def animate(self):
-        pointSpawner = RandomPointSpawner()
-        siteSpawner = SiteSpawner(self.config)
-        
-        #Generate points
-        points = pointSpawner.SpawnPoints(500)
-        numberPoints = siteSpawner.SpawnPoints()
-        
-        #Generate Voronoi
-        voronoi = Voronoi(numberPoints)
-        cells = voronoi.createVoronoi()
+        pygame.init()
+        voronoi = self.worldGenerator.voronoi
         
         # Run until the user asks to quit
         running = True
@@ -35,8 +25,7 @@ class Window(object):
                     running = False
 
             self.draw()
-            for c in cells:
-                c.draw(self)
+            voronoi.draw(self)
             pygame.display.update()
             
             # Flip the display
