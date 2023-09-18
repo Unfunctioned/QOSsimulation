@@ -4,6 +4,7 @@ from VoronoiDiagram.Cell import *
 from VoronoiDiagram.VoronoiBuilder import *
 from VoronoiDiagram.Edge import *
 
+'''Wrapper class for scipy's voronoi - works as an adapter for the simulation data structures'''
 class Voronoi(object):
     
     def __init__(self, sites):
@@ -17,16 +18,7 @@ class Voronoi(object):
     def createVoronoi(self):
         self.defineCells()
         self.generateCell()
-        for i in range(len(self.voronoi.ridge_points)):
-            ridge = self.voronoi.ridge_points[i]
-            siteA, siteB = self.getSite(ridge[0]), self.getSite(ridge[1])
-            if(self.builder.containsSite(siteA) and self.builder.containsSite(siteB)):
-                cellA, cellB = self.builder.cells[siteA], self.builder.cells[siteB]
-                cellA.addNeighbour(cellB)
-                cellB.addNeighbour(cellA)
-                edge = Edge(cellA.site, cellB.site)
-                self.builder.edges.append(edge)
-        print("Take a break!")
+        self.addNeighbourRelations()
             
     def defineCells(self):
         for i in range(len(self.voronoi.point_region)):
@@ -43,6 +35,17 @@ class Voronoi(object):
                 borderpoints.append(self.voronoi.vertices[i])
             cell = Cell(site, borderpoints)
             self.builder.addCell(site, cell)
+            
+    def addNeighbourRelations(self):
+        for i in range(len(self.voronoi.ridge_points)):
+            ridge = self.voronoi.ridge_points[i]
+            siteA, siteB = self.getSite(ridge[0]), self.getSite(ridge[1])
+            if(self.isValidNeighbour(siteA, siteB)):
+                cellA, cellB = self.builder.cells[siteA], self.builder.cells[siteB]
+                cellA.addNeighbour(cellB)
+                cellB.addNeighbour(cellA)
+                edge = Edge(cellA.site, cellB.site)
+                self.builder.edges.append(edge)
     
     def getSiteAndRegion(self, index):
         point_region = self.voronoi.point_region
@@ -58,6 +61,11 @@ class Voronoi(object):
         if(region == None or -1 in region):
             return True
         if(site in self.builder.sites):
+            return True
+        return False
+    
+    def isValidNeighbour(self, siteA, siteB):
+        if(self.builder.containsSite(siteA) and self.builder.containsSite(siteB)):
             return True
         return False
     

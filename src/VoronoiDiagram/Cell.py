@@ -1,4 +1,5 @@
 import pygame
+from UI.Colors import *
 
 class Cell(object):
     
@@ -6,6 +7,7 @@ class Cell(object):
         self.site = site
         self.borderpoints = borderpoints
         self.neighbours = set()
+        self.color = Colors.GetRandomColor()
         
         
     def draw(self, window):
@@ -14,6 +16,7 @@ class Cell(object):
             scaledpoint = i[0]*window.window_size[0],i[1]*window.window_size[1]
             scaledpoints.append(scaledpoint)
         scaled_site = self.site[0]*window.window_size[0], self.site[1]*window.window_size[1]
+        pygame.draw.polygon(window.screen, Colors.GetLightVariant(self.color), scaledpoints, 0)
         pygame.draw.polygon(window.screen, (0,0,0), scaledpoints, 3)
         pygame.draw.circle(window.screen, (0,0,255), scaled_site, 3)
         
