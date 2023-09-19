@@ -1,9 +1,10 @@
 import random
+from globals import *
 
 class SiteSpawner(object):
     
-    def __init__(self, config) -> None:
-        self.gridsize = config.GRIDSIZE
+    def __init__(self) -> None:
+        self.gridsize = CONFIG.GRIDSIZE
     
     def SpawnPoints(self):
         cellsize = 1.0/self.gridsize

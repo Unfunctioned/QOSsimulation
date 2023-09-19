@@ -1,13 +1,14 @@
 from RandomPointSpawner import *
 from SiteSpawner import *
 from VoronoiDiagram.Voronoi import *
+from globals import *
 
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):
     
-    def __init__(self, config) -> None:
+    def __init__(self) -> None:
         self.pointSpawner = RandomPointSpawner()
-        self.siteSpawner = SiteSpawner(config)
+        self.siteSpawner = SiteSpawner()
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
-        #self.points = pointSpawner.SpawnPoints(self.config.DENSITY_LEVEL)
+        self.points = self.pointSpawner.SpawnPoints(CONFIG.DENSITY_LEVEL)
         

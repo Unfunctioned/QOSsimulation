@@ -1,14 +1,14 @@
 import pygame
-from Config import *
-from WorldGenerator import *
+from globals import *
+from Simulation.WorldGenerator import *
+
 
 class Window(object):
     
     def __init__(self) -> None:
-        self.config = Config()
-        self.window_size = self.config.WINDOW_SIZE
+        self.window_size = CONFIG.WINDOW_SIZE
         self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
-        self.worldGenerator = WorldGenerator(self.config)
+        self.worldGenerator = WorldGenerator()
         self.animate()
         
     def animate(self):
