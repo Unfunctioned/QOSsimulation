@@ -3,4 +3,5 @@ from random import Random
 class RandomConfig(object):
     
     def __init__(self) -> None:
-        self.coloring = Random(0)
+        self.siteGeneration = Random(0)
+        self.colorGeneration = Random(0)

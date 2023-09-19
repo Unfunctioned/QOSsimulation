@@ -1,3 +1,3 @@
-from Config import Config
+from Configuration.Config import Config
 
 CONFIG = Config()

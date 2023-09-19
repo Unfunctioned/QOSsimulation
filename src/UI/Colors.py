@@ -1,9 +1,10 @@
 import random
+from Configuration.globals import CONFIG
 '''Class to configure the color of UI elements'''
 class Colors(object):
     
     def GetRandomColor():
-        i = random.randint(0,2)
+        i = CONFIG.randomConfig.colorGeneration.randint(0,2)
         match i:
             case 0:
                 return (255, 0, 0)
