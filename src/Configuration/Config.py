@@ -1,4 +1,4 @@
-from RandomConfig import RandomConfig
+from Configuration.RandomConfig import RandomConfig
 class Config(object):
     
     def __init__(self) -> None:

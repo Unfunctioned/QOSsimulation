@@ -1,5 +1,5 @@
 import random
-from globals import *
+from Configuration.globals import *
 
 class SiteSpawner(object):
     

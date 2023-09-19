@@ -1,7 +1,7 @@
 from RandomPointSpawner import *
 from SiteSpawner import *
 from VoronoiDiagram.Voronoi import *
-from globals import *
+from Configuration.globals import *
 
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):

@@ -1,5 +1,5 @@
 import pygame
-from globals import *
+from Configuration.globals import *
 from Simulation.WorldGenerator import *
 
 
