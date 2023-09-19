@@ -18,7 +18,7 @@ class Voronoi(object):
     def createVoronoi(self):
         self.defineCells()
         self.generateCell()
-        self.addNeighbourRelations()
+        self.addNeighbourRelations()        
             
     def defineCells(self):
         for i in range(len(self.voronoi.point_region)):
@@ -60,6 +60,12 @@ class Voronoi(object):
     def isInvalid(self, site, region):
         if(region == None or -1 in region):
             return True
+        for index in region:
+            if(index == -1):
+                continue
+            point = self.voronoi.vertices[index]
+            if(point[0] < 0.0 or point[0] > 1.0 or point[1] < 0.0 or point[1] > 1.0):
+                return True
         if(site in self.builder.sites):
             return True
         return False

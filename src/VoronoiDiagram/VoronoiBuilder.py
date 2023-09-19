@@ -5,6 +5,7 @@ class VoronoiBuilder(object):
         self.sites = {}
         self.cells = {}
         self.edges = []
+        
     def addRegion(self, site, region):
         self.sites[site] = region
         
@@ -15,8 +16,6 @@ class VoronoiBuilder(object):
             ValueError("Key with value {site} already exists")
             
     def containsSite(self, site):
-        isIn = False
-        contains = False
         if(site in self.sites):
             return True
         return False

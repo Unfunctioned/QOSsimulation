@@ -26,6 +26,8 @@ class Window(object):
 
             self.draw()
             voronoi.draw(self)
+            for point in self.worldGenerator.points:
+                point.draw(self)
             pygame.display.update()
             
             # Flip the display
