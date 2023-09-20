@@ -6,15 +6,15 @@ from Simulation.WorldGenerator import *
 class Window(object):
     
     def __init__(self) -> None:
+        pygame.init()
+        pygame.font.init()
         self.window_size = CONFIG.WINDOW_SIZE
         self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
+        self.font = pygame.font.SysFont('Comic Sans MS', 14)
         self.worldGenerator = WorldGenerator()
         self.animate()
         
     def animate(self):
-        pygame.init()
-        voronoi = self.worldGenerator.voronoi
-        
         # Run until the user asks to quit
         running = True
         while running:
@@ -25,9 +25,7 @@ class Window(object):
                     running = False
 
             self.draw()
-            voronoi.draw(self)
-            for point in self.worldGenerator.points:
-                point.draw(self)
+            self.worldGenerator.draw(self)
             pygame.display.update()
             
             # Flip the display

@@ -6,3 +6,4 @@ class RandomConfig(object):
         self.siteGeneration = Random(0)
         self.colorGeneration = Random(0)
         self.pointGeneration = Random(0)
+        self.areaTypeSelection = Random(0)

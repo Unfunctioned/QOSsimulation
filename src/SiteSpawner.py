@@ -8,7 +8,7 @@ class SiteSpawner(object):
         self.gridsize = CONFIG.GRIDSIZE
     
     def SpawnPoints(self):
-        generator = CONFIG.randomConfig.siteGeneration
+        generator = CONFIG.randoms.siteGeneration
         cellsize = 1.0/self.gridsize
         points = []
         for i in range(0, self.gridsize):

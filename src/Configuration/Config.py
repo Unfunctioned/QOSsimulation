@@ -6,4 +6,4 @@ class Config(object):
         self.FPS = 60
         self.GRIDSIZE = 7
         self.DENSITY_LEVEL = 500
-        self.randomConfig = RandomConfig()
+        self.randoms = RandomConfig()

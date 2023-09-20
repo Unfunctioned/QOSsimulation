@@ -4,6 +4,7 @@ from enum import Enum
 class ColorCode(Enum):
     RED = 1,
     YELLOW = 2,
-    GREEN = 3
+    GREEN = 3,
+    WHITE = 4
     
     

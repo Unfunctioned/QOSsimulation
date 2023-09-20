@@ -78,6 +78,7 @@ class Voronoi(object):
     def draw(self, window):
         for cell in self.cells:
             cell.draw(window)
-        #for edge in self.edges:
-        #    edge.draw(window)
-            
+        
+    def drawEdges(self, window):
+        for edge in self.edges:
+            edge.draw(window)
