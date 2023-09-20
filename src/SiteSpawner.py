@@ -5,7 +5,7 @@ from Configuration.globals import *
 class SiteSpawner(object):
     
     def __init__(self) -> None:
-        self.gridsize = CONFIG.GRIDSIZE
+        self.gridsize = CONFIG.simConfig.GRIDSIZE
     
     def SpawnPoints(self):
         generator = CONFIG.randoms.siteGeneration
