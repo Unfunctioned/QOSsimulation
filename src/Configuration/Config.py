@@ -1,9 +1,9 @@
-from Configuration.RandomConfig import RandomConfig
+from Configuration.Randoms import Randoms
+from Configuration.UISettings import UISettings
 class Config(object):
     
     def __init__(self) -> None:
-        self.WINDOW_SIZE = (720, 720)
-        self.FPS = 60
+        self.uiSettings = UISettings()
         self.GRIDSIZE = 7
         self.DENSITY_LEVEL = 500
-        self.randoms = RandomConfig()
+        self.randoms = Randoms()

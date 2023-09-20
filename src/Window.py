@@ -8,7 +8,7 @@ class Window(object):
     def __init__(self) -> None:
         pygame.init()
         pygame.font.init()
-        self.window_size = CONFIG.WINDOW_SIZE
+        self.window_size = CONFIG.uiSettings.WINDOW_SIZE
         self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
         self.font = pygame.font.SysFont('Comic Sans MS', 14)
         self.worldGenerator = WorldGenerator()
