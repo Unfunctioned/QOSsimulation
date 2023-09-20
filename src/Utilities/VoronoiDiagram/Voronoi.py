@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.spatial import Voronoi as V
-from VoronoiDiagram.Cell import *
-from VoronoiDiagram.VoronoiBuilder import *
-from VoronoiDiagram.Edge import *
+from Utilities.VoronoiDiagram.Cell import *
+from Utilities.VoronoiDiagram.VoronoiBuilder import *
+from Utilities.VoronoiDiagram.Edge import *
 
 '''Wrapper class for scipy's voronoi - works as an adapter for the simulation data structures'''
 class Voronoi(object):

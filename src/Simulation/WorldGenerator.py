@@ -1,6 +1,6 @@
-from RandomPointSpawner import *
-from SiteSpawner import *
-from VoronoiDiagram.Voronoi import *
+from Utilities.RandomPointSpawner import *
+from Utilities.SiteSpawner import *
+from Utilities.VoronoiDiagram.Voronoi import *
 from Configuration.globals import *
 from Simulation.World import World
 

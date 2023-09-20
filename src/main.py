@@ -1,4 +1,4 @@
-from Window import *
+from UI.Window import *
 
 def main():
     window = Window()
