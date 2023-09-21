@@ -5,3 +5,4 @@ class AreaType(Enum):
     RURAL = 1,
     URBAN = 2,
     DENSE_URBAN = 3
+    NONE = 4

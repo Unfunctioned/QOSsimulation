@@ -11,23 +11,24 @@ class WorldGenerator(object):
         self.pointSpawner = RandomPointSpawner()
         self.siteSpawner = SiteSpawner()
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
+        points = self.pointSpawner.SpawnPoints(CONFIG.simConfig.DENSITY_LEVEL)
+        self.matchPointsToCell(points)
         self.world = World()
         self.world.generateServiceAreas(self.voronoi.cells)
         self.world.printInfo()
-        #self.points = self.pointSpawner.SpawnPoints(CONFIG.DENSITY_LEVEL)
-        #self.matchPointsToCell()
         
         
-    def matchPointsToCell(self):
-        for point in self.points:
+    def matchPointsToCell(self, points):
+        for point in points:
+            print(point.position)
             for cell in self.voronoi.cells:
                 if(cell.isPointinCell(point.position)):
                     point.color = Colors.GetColor(cell.colorcode)
+                    cell.weight += 1
+                    break
                     
     def draw(self, window):
         self.world.draw(window)
-        self.world.drawInfo(window)
+        #self.world.drawInfo(window)
         #self.voronoi.drawEdges(window)
-        #for point in self.points:
-        #    point.draw(window)
         

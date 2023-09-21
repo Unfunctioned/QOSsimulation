@@ -9,8 +9,8 @@ class RandomPointSpawner(object):
     def SpawnPoints(self, count):
         points = []
         for _ in range(0,count):
-            x = CONFIG.randomConfig.pointGeneration.random()
-            y = CONFIG.randomConfig.pointGeneration.random()
+            x = CONFIG.randoms.pointGeneration.random()
+            y = CONFIG.randoms.pointGeneration.random()
             points.append(UIPoint((x,y)))
         return points
         

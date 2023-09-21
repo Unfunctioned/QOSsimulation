@@ -37,3 +37,5 @@ class Colors(object):
                 return ColorCode.YELLOW
             case AreaType.DENSE_URBAN:
                 return ColorCode.RED
+            case AreaType.NONE:
+                return ColorCode.WHITE

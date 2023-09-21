@@ -12,6 +12,7 @@ class Cell(object):
         boundingBox = self.findBound()
         self.minBound = (boundingBox[0], boundingBox[1])
         self.maxBound = (boundingBox[2], boundingBox[3])
+        self.weight = 0
         
     def addNeighbour(self, cell):
         self.neighbours.add(cell)
@@ -41,8 +42,10 @@ class Cell(object):
     def calculateTriangleArea(self, p1, p2, p3):
         return 0.5*abs(p1[0]*(p2[1]-p3[1])+p2[0]*(p3[1]-p1[1])+p3[0]*(p1[1]-p2[1]))
     
+    #Uses the winding numbers algorihm by Dan Sunday presented in
+    # http://profs.ic.uff.br/~anselmo/cursos/CGI/slidesNovos/Inclusion%20of%20a%20Point%20in%20a%20Polygon.pdf
     def isPointinCell(self, point):
-        if(not (point[0] >= self.minBound[0] and point[1] >= self.minBound[1]
+        if(not (point[0] > self.minBound[0] and point[1] > self.minBound[1]
            and point[0] < self.maxBound[0] and point[1] < self.maxBound[1])):
             return False
         
@@ -51,8 +54,9 @@ class Cell(object):
         for i in range(-1, len(self.borderpoints)-1):
             p1, p2 = self.borderpoints[i], self.borderpoints[i+1]
             isLeft = self.isLeft(p1, p2, point)
-            if(p1[1] <= point[1] and p2[1] > point[1] and isLeft > 0.0):
-                windingNumber += 1
+            if(p1[1] <= point[1]):
+                if(p2[1] > point[1] and isLeft > 0.0):
+                    windingNumber += 1
             elif(p2[1] <= point[1] and isLeft < 0.0):
                 windingNumber -= 1
         
