@@ -20,10 +20,12 @@ class World(object):
         
     def generateServiceAreas(self, cells):
         areaDefinitions = self.designateAreaTypes(cells)
+        index = 0
         for (type, cell) in areaDefinitions:
-            serviceArea = ServiceArea(cell, type)
+            serviceArea = ServiceArea(index, cell, type)
             self.serviceArea.append(serviceArea)
             self.generateActivityUpdateEvent(serviceArea)
+            index += 1
         print("Events in Queue: {count}".format(count = self.eventHandler.getEventCount()))
             
     def designateAreaTypes(self, cells):

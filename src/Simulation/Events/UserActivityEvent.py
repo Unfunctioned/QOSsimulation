@@ -18,4 +18,4 @@ class UserActivityEvent(object):
         
     def trigger(self):
         modifier = 0.9 + CONFIG.randoms.activitySimulation.random()*0.2
-        self.area.ChangeActivity(modifier)
+        self.area.ChangeActivity(self.t, modifier)

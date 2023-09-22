@@ -2,10 +2,12 @@ from Configuration.globals import CONFIG
 from Simulation.PhysicalEnvironment.AreaType import AreaType
 from UI.Colors import Colors
 import math
+from DataOutput.DataRecorder import DataRecorder
 '''Represents the service area in the simulation'''
 class ServiceArea(object):
     
-    def __init__(self, cell, areaType) -> None:
+    def __init__(self, id, cell, areaType) -> None:
+        self.id = id
         self.areaType = areaType
         self.cell = cell
         cell.colorcode = Colors.GetColorCodeByAreaType(self.areaType)
@@ -14,9 +16,11 @@ class ServiceArea(object):
         self.totalUsers = math.floor(self.userPool * self.areaSize)
         self.default_activity = CONFIG.simConfig.get_default_activity(self.areaType)
         self.activity = self.default_activity
+        self.activityHistory = DataRecorder(self.id, "ACTIVITY")
         
-    def ChangeActivity(self, modifier):
+    def ChangeActivity(self, currentTime, modifier):
         self.activity = self.default_activity * modifier
+        self.activityHistory.record(currentTime, self.activity)
         
     def draw(self, window):
         self.cell.draw(window)
