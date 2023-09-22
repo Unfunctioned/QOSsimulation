@@ -11,7 +11,7 @@ class WorldGenerator(object):
         self.pointSpawner = RandomPointSpawner()
         self.siteSpawner = SiteSpawner()
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
-        points = self.pointSpawner.SpawnPoints(CONFIG.simConfig.DENSITY_LEVEL)
+        points = self.pointSpawner.SpawnPoints(CONFIG.simConfig.WEIGHTS)
         self.matchPointsToCell(points)
         self.world = World()
         self.world.generateServiceAreas(self.voronoi.cells)
@@ -26,6 +26,9 @@ class WorldGenerator(object):
                     point.color = Colors.GetColor(cell.colorcode)
                     cell.weight += 1
                     break
+                
+    def get_world(self):
+        return self.world
                     
     def draw(self, window):
         self.world.draw(window)

@@ -7,3 +7,5 @@ class Randoms(object):
         self.colorGeneration = Random(0)
         self.pointGeneration = Random(0)
         self.areaTypeSelection = Random(0)
+        self.activitySimulation = Random(0)
+        self.activityDelay = Random(0)
