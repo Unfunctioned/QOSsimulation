@@ -1,8 +1,8 @@
 from Configuration.globals import CONFIG
-from Simulation.PhysicalEnvironment.AreaType import AreaType
 from UI.Colors import Colors
 import math
 from DataOutput.DataRecorder import DataRecorder
+from Simulation.NetworkEnvironment.LocalServiceNetwork import LocalServiceNetwork
 '''Represents the service area in the simulation'''
 class ServiceArea(object):
     
@@ -12,15 +12,20 @@ class ServiceArea(object):
         self.cell = cell
         cell.colorcode = Colors.GetColorCodeByAreaType(self.areaType)
         self.areaSize = CONFIG.simConfig.scale(self.cell.area)
-        self.userPool = CONFIG.simConfig.get_user_density(self.areaType)
-        self.totalUsers = math.floor(self.userPool * self.areaSize)
+        self.userDensity = CONFIG.simConfig.get_user_density(self.areaType)
+        self.totalUsers = math.floor(self.userDensity * self.areaSize)
         self.default_activity = CONFIG.simConfig.get_default_activity(self.areaType)
         self.activity = self.default_activity
-        self.activityHistory = DataRecorder(self.id, "ACTIVITY")
+        self.activityHistory = DataRecorder(self.id, 1, ["ACTIVITY"])
+        self.activityHistory.createFileOutput(CONFIG.filePaths.serviceAreaPath, "ServiceArea")
+        self.localServiceNetwork = LocalServiceNetwork(id, self.areaSize, self.areaType)
+        self.ChangeActivity(0, 1.0, 0.0)
         
-    def ChangeActivity(self, currentTime, modifier):
-        self.activity = self.default_activity * modifier
-        self.activityHistory.record(currentTime, self.activity)
+    def ChangeActivity(self, currentTime, modifier, activityBoost):
+        self.activity = self.default_activity * modifier + activityBoost
+        self.activityHistory.record(currentTime, [self.activity])
+        activeUsers = math.floor(self.activity * self.totalUsers)
+        self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
     def draw(self, window):
         self.cell.draw(window)

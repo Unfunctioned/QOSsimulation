@@ -14,4 +14,5 @@ class FilePath(object):
         os.mkdir(self.simulationPath)
         self.serviceAreaPath = os.path.join(self.simulationPath, "ServiceAreas")
         os.mkdir(self.serviceAreaPath)
-        print("Take a break")
+        self.localServiceNetworkPath = os.path.join(self.simulationPath, "LocalServiceNetwork")
+        os.mkdir(self.localServiceNetworkPath)

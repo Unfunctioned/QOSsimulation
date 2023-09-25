@@ -15,32 +15,32 @@ class EventHandler(object):
     
     def __init__(self) -> None:
         self.currentTime = 0
-        self._eventQueue = PriorityQueue()
+        self._activityEventQueue = PriorityQueue()
         
     def addEvent(self, time : int, event):
         if(time < self.currentTime):
             ValueError("Event time is in the past")
-        self._eventQueue.put(PrioritizedItem(time, event))
+        self._activityEventQueue.put(PrioritizedItem(time, event))
         
     def getNextEvent(self):
-        return self._eventQueue.get()
+        return self._activityEventQueue.get()
     
     def getEventCount(self):
-        return self._eventQueue._qsize()
+        return self._activityEventQueue._qsize()
     
     def setCurrentTime(self, time):
         self.currentTime = time
         
     def isEmpty(self):
         try:
-            entry = self._eventQueue.queue[0]
+            entry = self._activityEventQueue.queue[0]
             return False
         except:
             return True
     
     def Peek(self):
         try:
-            entry = self._eventQueue.queue[0]
+            entry = self._activityEventQueue.queue[0]
             return entry
         except:
             return None
@@ -62,7 +62,7 @@ class EventHandler(object):
             event = entry.item
             event.trigger()
             if(event.generateFollowUp and self.currentTime < CONFIG.simConfig.MAX_TIME):
-                followUpEvent = UserActivityEvent.generateEvent(self.currentTime, event.area)
+                followUpEvent = UserActivityEvent.generateFollowUp(event)
                 self.addEvent(followUpEvent.t, followUpEvent)
             if(self.isEmpty() or self.currentTime < (self.Peek()).priority):
                 getNext = False

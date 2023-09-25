@@ -12,19 +12,27 @@ class SimConfig(object):
         #Kilometers spanning the unit range 0.0 to 1.0 (the full map)
         self.SCALE = 100
         #user density rural per sq km
-        self.UD_RURAL = 100
+        self.UD_RURAL = 33
         #user density urban per sq km
-        self.UD_URBAN = 10000
+        self.UD_URBAN = 3333
         #user density dense urban per sq km
-        self.UD_DENSE_URBAN = 25000
+        self.UD_DENSE_URBAN = 8333
         #Ratio of areas being of type 'dense urban'
         self.SHARE_DENSE = 0.1
         #Ratio of areas being of type 'rural'
         self.SHARE_RURAL = 0.3
-        #Default user activity for 'rural' areas
+        #Default user activity for 'rural', 'urban' and 'dense urban' areas
         self.DEFAULT_ACTIVITY_RURAL = 0.2
         self.DEFAULT_ACTIVITY_URBAN = 0.2
         self.DEFAULT_ACTIVITY_DENSE_URBAN = 0.1
+        #Area traffic capacities by area type ( rural, urban, dense urban) in Mbps/km^2
+        self.TRAFFIC_CAPACITY_RURAL = 170
+        self.TRAFFIC_CAPACITY_URBAN = 17000
+        self.TRAFFIC_CAPACITY_DENSE_URBAN = 42000
+        #Network demand posed by non-MBP network users in Mbps
+        self.BASIC_DATA_RATE_DEMAND = 25
+        #Network activity spike duration range
+        self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         
     def scale(self, value):
         return value * (self.SCALE ** 2)
@@ -48,6 +56,17 @@ class SimConfig(object):
                 return self.DEFAULT_ACTIVITY_URBAN
             case AreaType.DENSE_URBAN:
                 return self.DEFAULT_ACTIVITY_DENSE_URBAN
+            case _ :
+                ValueError("Invalid area type")
+                
+    def get_traffic_capacity(self, areaType):
+        match areaType:
+            case AreaType.RURAL:
+                return self.TRAFFIC_CAPACITY_RURAL
+            case AreaType.URBAN:
+                return self.TRAFFIC_CAPACITY_URBAN
+            case AreaType.DENSE_URBAN:
+                return self.TRAFFIC_CAPACITY_DENSE_URBAN
             case _ :
                 ValueError("Invalid area type")
     
