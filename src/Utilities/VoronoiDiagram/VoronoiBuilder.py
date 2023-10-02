@@ -13,7 +13,7 @@ class VoronoiBuilder(object):
         if(not site in self.cells):
             self.cells[site] = cell
         else:
-            ValueError("Key with value {site} already exists")
+            raise ValueError("Key with value {site} already exists")
             
     def containsSite(self, site):
         if(site in self.sites):

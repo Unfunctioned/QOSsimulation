@@ -14,5 +14,12 @@ class FilePath(object):
         os.mkdir(self.simulationPath)
         self.serviceAreaPath = os.path.join(self.simulationPath, "ServiceAreas")
         os.mkdir(self.serviceAreaPath)
-        self.localServiceNetworkPath = os.path.join(self.simulationPath, "LocalServiceNetwork")
+        self.localServiceNetworkPath = os.path.join(self.simulationPath, "LocalServiceNetworks")
         os.mkdir(self.localServiceNetworkPath)
+        self.companyPath = os.path.join(self.simulationPath, "Companies")
+        os.mkdir(self.companyPath)
+        
+    def createInstanceOutputFolder(self, path, folderName, id):
+        folderPath = os.path.join(path, folderName + "#" + str(id))
+        os.mkdir(folderPath)
+        return folderPath

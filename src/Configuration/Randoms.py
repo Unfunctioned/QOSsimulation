@@ -9,3 +9,7 @@ class Randoms(object):
         self.areaTypeSelection = Random(0)
         self.activitySimulation = Random(0)
         self.activityDelay = Random(0)
+        self.latencySimulation = Random(0)
+        self.latencyDelay = Random(0)
+        self.workDurationSimulation = Random(0)
+        self.businessProcessActivationSimulation = Random(0)

@@ -33,6 +33,10 @@ class SimConfig(object):
         self.BASIC_DATA_RATE_DEMAND = 25
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
+        #Defines number of active companies in the simulation
+        self.COMPANIES = 1
+        #Defines the time factor (in seconds) to determine business activity durations
+        self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         
     def scale(self, value):
         return value * (self.SCALE ** 2)
@@ -46,7 +50,7 @@ class SimConfig(object):
             case AreaType.DENSE_URBAN:
                 return self.UD_DENSE_URBAN
             case _ :
-                ValueError("Invalid area type")
+                raise ValueError("Invalid area type")
                 
     def get_default_activity(self, areaType):
         match areaType:
@@ -57,7 +61,7 @@ class SimConfig(object):
             case AreaType.DENSE_URBAN:
                 return self.DEFAULT_ACTIVITY_DENSE_URBAN
             case _ :
-                ValueError("Invalid area type")
+                raise ValueError("Invalid area type")
                 
     def get_traffic_capacity(self, areaType):
         match areaType:
@@ -68,5 +72,5 @@ class SimConfig(object):
             case AreaType.DENSE_URBAN:
                 return self.TRAFFIC_CAPACITY_DENSE_URBAN
             case _ :
-                ValueError("Invalid area type")
+                raise ValueError("Invalid area type")
     

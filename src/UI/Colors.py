@@ -19,7 +19,7 @@ class Colors(object):
             case ColorCode.WHITE:
                 return (255, 255, 255)
             case _ :
-                ValueError("Invalid code")
+                raise ValueError("Invalid code")
                 
     def GetLightVariant(colorcode):
         color = Colors.GetColor(colorcode)
@@ -29,7 +29,6 @@ class Colors(object):
         return (r,g,b)
     
     def GetColorCodeByAreaType(areaType):
-        colorCode = None
         match areaType:
             case AreaType.RURAL:
                 return ColorCode.GREEN

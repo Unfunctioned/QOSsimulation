@@ -1,25 +1,74 @@
 from Configuration.globals import CONFIG
-from DataOutput.DataRecorder import DataRecorder
+from DataOutput.TimeDataRecorder import TimeDataRecorder
+from Simulation.NetworkEnvironment.NetworkSliceManager import NetworkSliceManager
+from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
+from Simulation.NetworkEnvironment.ViolationType import ViolationType
+from Simulation.NetworkEnvironment.ActivationType import ActivationType
 '''Represents the local service network providing services in a service area'''
 class LocalServiceNetwork(object):
     
-    def __init__(self, id, areaSize, areaType) -> None:
-        self.totalTrafficCapacity = areaSize * CONFIG.simConfig.get_traffic_capacity(areaType)
+    @staticmethod
+    def InitializeOutputFolder(id):
+        path = CONFIG.filePaths.localServiceNetworkPath
+        folderPath = CONFIG.filePaths.createInstanceOutputFolder(path, "LocalServiceNetwork", id)
+        return folderPath
+    
+    def __init__(self, serviceArea, folderPath, trafficCapacity, publicSlice : PublicSlice) -> None:
+        self.serviceArea = serviceArea
+        self.totalTrafficCapacity = trafficCapacity
         # Amount of non-MBP network users active in the area
         self.basicUsers = 0
-        self.availableTrafficCapacity = self.totalTrafficCapacity
-        self.utilization = 1 - (self.availableTrafficCapacity / self.totalTrafficCapacity)
         #For equally distributed data rates
         self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
-        self.networkCapacityHistory = DataRecorder(id, 3, ["TotalCapacity", "AvailableCapacity", "Utilization", "MaxDataRate"])
-        self.networkCapacityHistory.createFileOutput(CONFIG.filePaths.localServiceNetworkPath, "LocalServiceNetwork")
-        self.networkCapacityHistory.record(0, [self.totalTrafficCapacity, self.availableTrafficCapacity, self.utilization, self.MaxDataRatePerUser])
+        #Default network Latency in ms
+        self._defaultLatency = 10
+        #Current network latency
+        self.latency = self._defaultLatency
+        #Network slices operating in the network
+        self.publicSlice = publicSlice
+        self.sliceManager = NetworkSliceManager()
+        self.sliceManager.addNetworkSlice(0, publicSlice)
+        # Inititalize recording of network capacity changes
+        self.networkCapacityHistory = TimeDataRecorder(serviceArea.id, 2, ["TotalCapacity", "MaxDataRate"])
+        self.networkCapacityHistory.createFileOutput(folderPath, "CapacityHistory")
+        self.networkCapacityHistory.record(0, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
+        #Initialize recording of network quality changes
+        self.networkQualityHistory = TimeDataRecorder(serviceArea.id, 1, ["Latency"])
+        self.networkQualityHistory.createFileOutput(folderPath, "QualityHistory")
+        self.networkQualityHistory.record(0, [self.latency])
+        #Initialize slice activation history
+        self.sliceActivationHistory = TimeDataRecorder(serviceArea.id, 2, ["CompanyID", "ActivationType"])
+        self.sliceActivationHistory.createFileOutput(folderPath, "SliceActivationHistory")
+        self.sliceActivationHistory.record(0, [self.publicSlice.companyId, ActivationType.ACTIVATION.value[0]])
         
     def UpdateActivity(self, currentTime, basicUserCount):
         self.basicUsers = basicUserCount
-        basicUserDemand = self.basicUsers * CONFIG.simConfig.BASIC_DATA_RATE_DEMAND
-        self.availableTrafficCapacity = self.totalTrafficCapacity - basicUserDemand
-        self.utilization = 1 - (self.availableTrafficCapacity / self.totalTrafficCapacity)
+        serviceRequirements = self.publicSlice.GetServiceAreaRequirements(self.serviceArea)
+        if not len(serviceRequirements) == 1:
+            raise ValueError("Invalid requirements")
+        list(serviceRequirements)[0].UpdateUsers(basicUserCount)
+
+        #Baseline capacity update
+        #Calculate the demand of private network slices (belonging to companies)
+        privateDemand = self.sliceManager.GetPrivateDemand(self.serviceArea)
+        (minDemand, maxDemand) = self.sliceManager.GetPublicDemandRange(self.serviceArea, self.publicSlice)
+        if(self.totalTrafficCapacity < privateDemand + minDemand):
+            #Record Capacity violation for all network slices
+            networkSlices = self.sliceManager.GetAllNetworkSlices()
+            for networkSlice in networkSlices:
+                networkSlice.AddViolation(ViolationType.CAPACITY)
         self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
-        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.availableTrafficCapacity, self.utilization, self.MaxDataRatePerUser])
+        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
+        
+    def UpdateLatency(self, currentTime, modifier):
+        self.latency = self._defaultLatency * modifier
+        self.networkQualityHistory.record(currentTime, [self.latency])
+        
+    def ActivateNetworkSlice(self, currentTime, networkSlice):
+        self.sliceManager.addNetworkSlice(currentTime, networkSlice)
+        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.ACTIVATION.value[0]])
+        
+    def DeactivateNetworkSlice(self, currentTime, networkSlice):
+        self.sliceManager.removeNetworkSlice(networkSlice)
+        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION.value[0]])
         

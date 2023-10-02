@@ -2,4 +2,6 @@
 class EventConfig(object):
     
     def __init__(self) -> None:
-        self.activityDelayRange = (15,30)
+        self.activityEventDelayRange = (15,30)
+        self.latencyEventDelayRange = (15,30)
+        self.businessProcessActivationDelayRange = (0, 900)

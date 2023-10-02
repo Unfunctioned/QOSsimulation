@@ -1,19 +1,20 @@
 from Configuration.globals import CONFIG
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
+from Simulation.Events.Event import Event
 import math
 '''Triggers a change of user activity in a service area'''
-class UserActivityEvent(object):
+class UserActivityEvent(Event):
     
     @staticmethod
     def generateEvent(currentTime, serviceArea):
-        delayConfig = CONFIG.eventConfig.activityDelayRange
+        delayConfig = CONFIG.eventConfig.activityEventDelayRange
         delay = CONFIG.randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
         eventTime = currentTime + delay
         return UserActivityEvent(eventTime, serviceArea)
     
     @staticmethod
     def generateFollowUp(previousEvent):
-        delayConfig = CONFIG.eventConfig.activityDelayRange
+        delayConfig = CONFIG.eventConfig.activityEventDelayRange
         delay = CONFIG.randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
         eventTime = previousEvent.t + delay
         newEvent = UserActivityEvent(eventTime, previousEvent.area)
@@ -25,14 +26,14 @@ class UserActivityEvent(object):
                 newEvent.t = previousEvent.t + remainingBoostDuration
         return newEvent
         
-    def __init__(self, t, area : ServiceArea) -> None:
-        self.t = t
+    def __init__(self, eventTime, area : ServiceArea) -> None:
+        super().__init__(eventTime)
         self.area = area
-        self.baseActivityBoost = CONFIG.randoms.activitySimulation.random()
+        self.baseActivityBoost = 0.0 #CONFIG.randoms.activitySimulation.random()
         durationConfig = CONFIG.simConfig.MAX_NETWORK_ACTIVITY_SPIKE_DURATION
         durationFactor = CONFIG.randoms.activitySimulation.random() * 1.2 - 0.2
         self.baseActivityDuration = math.floor(durationConfig * durationFactor)
-        self.generateFollowUp = True        
+        self.generateFollowUpEvent = True        
         
     def trigger(self):
         modifier = 0.9 + CONFIG.randoms.activitySimulation.random()*0.2
