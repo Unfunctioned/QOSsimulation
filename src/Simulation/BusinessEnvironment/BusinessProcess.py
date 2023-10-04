@@ -10,7 +10,8 @@ class BusinessProcess(object):
         self.activities = self.generateProcess(location)
         businessRecorder = BasicDataRecorder(id, 5, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
         businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
-        self._recordProcessDefinition(businessRecorder)       
+        self._recordProcessDefinition(businessRecorder)
+        businessRecorder.terminate()       
         
     def generateProcess(self, companyLocation):
         activities = []

@@ -39,7 +39,6 @@ class LocalServiceNetwork(object):
         #Initialize slice activation history
         self.sliceActivationHistory = TimeDataRecorder(serviceArea.id, 2, ["CompanyID", "ActivationType"])
         self.sliceActivationHistory.createFileOutput(folderPath, "SliceActivationHistory")
-        self.sliceActivationHistory.record(0, [self.publicSlice.companyId, ActivationType.ACTIVATION.value[0]])
         
     def UpdateActivity(self, currentTime, basicUserCount):
         self.basicUsers = basicUserCount
@@ -53,10 +52,12 @@ class LocalServiceNetwork(object):
         privateDemand = self.sliceManager.GetPrivateDemand(self.serviceArea)
         (minDemand, maxDemand) = self.sliceManager.GetPublicDemandRange(self.serviceArea, self.publicSlice)
         if(self.totalTrafficCapacity < privateDemand + minDemand):
-            #Record Capacity violation for all network slices
-            networkSlices = self.sliceManager.GetAllNetworkSlices()
-            for networkSlice in networkSlices:
-                networkSlice.AddViolation(ViolationType.CAPACITY)
+            excessDemand = privateDemand - (self.totalTrafficCapacity - minDemand)
+            #Record Capacity violation for slices, whose capcity demand cannot be met
+            violatedSlices = self.sliceManager.FindViolatedSlices(self.serviceArea, excessDemand)
+            for networkSlice in violatedSlices:
+                print("QoS Violation! {id}".format(id = networkSlice.companyId))
+                networkSlice.AddViolation(currentTime, self.serviceArea.id, ViolationType.CAPACITY)
         self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
         self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
         
@@ -71,4 +72,9 @@ class LocalServiceNetwork(object):
     def DeactivateNetworkSlice(self, currentTime, networkSlice):
         self.sliceManager.removeNetworkSlice(networkSlice)
         self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION.value[0]])
+        
+    def terminate(self):
+        self.networkCapacityHistory.terminate()
+        self.networkQualityHistory.terminate()
+        self.sliceActivationHistory.terminate()
         

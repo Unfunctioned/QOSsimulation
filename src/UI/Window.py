@@ -37,6 +37,7 @@ class Window(object):
             if(not self.world.isRunning()):
                 running = False            
         # Done! Time to quit.
+        self.world.Terminate()
         pygame.quit()
         
 

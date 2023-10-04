@@ -45,7 +45,7 @@ class WorldGenerator(object):
     def generateCompanies(self):
         companies = []
         for i in range(CONFIG.simConfig.COMPANIES):
-            serviceArea = random.choice(self.serviceAreas)
+            serviceArea = CONFIG.randoms.companyLocationGeneration.choice(self.serviceAreas)
             company = Company(i, serviceArea)
             delayRange = CONFIG.eventConfig.businessProcessActivationDelayRange
             eventTime = CONFIG.randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])

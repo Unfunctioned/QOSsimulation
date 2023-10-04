@@ -31,7 +31,7 @@ class ServiceArea(object):
         
         self.localServiceNetwork = LocalServiceNetwork(self, localNetworkFolderPath, trafficCapacity, publicSlice)
         publicSlice.ActivateServiceArea(0, self, serviceRequirement)
-        self.ChangeActivity(0, 1.0, 0.0)
+        self.ChangeActivity(0, 1.0, 1.0)
     
     def ChangeActivity(self, currentTime, modifier, activityBoost):
         self.activity = min(self.default_activity * modifier + activityBoost, 1.0)
@@ -44,6 +44,10 @@ class ServiceArea(object):
         
     def DeactivateNetworkSlice(self, currentTime, networkSlice):
         self.localServiceNetwork.DeactivateNetworkSlice(currentTime, networkSlice)
+        
+    def Terminate(self):
+        self.activityHistory.terminate()
+        self.localServiceNetwork.terminate()
         
     def draw(self, window):
         self.cell.draw(window)

@@ -1,7 +1,8 @@
 from Configuration.globals import CONFIG
 import os
+from DataOutput.BaseRecorder import BaseRecorder
 '''Used to record simulation data'''
-class BasicDataRecorder(object):
+class BasicDataRecorder(BaseRecorder):
     
     def __init__(self, id, size, headers) -> None:
         self.id = id
@@ -35,3 +36,6 @@ class BasicDataRecorder(object):
         for value in values:
             text += str(value) + " "
         return text
+    
+    def terminate(self):
+        self.file.close()

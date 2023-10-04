@@ -15,6 +15,7 @@ class Company(object):
         companyInfo = BasicDataRecorder(self.id, 2, ["ID", "LOCATION_ID"])
         companyInfo.createFileOutput(folderPath, "CompanyInfo")
         companyInfo.record((self.id, self.location.id))
+        companyInfo.terminate()
         
     def ActivateBusinessProcess(self, currentTime):
         self.businessProcess.Execute(currentTime, self.networkSlice)

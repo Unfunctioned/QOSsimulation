@@ -9,7 +9,7 @@ import math
 '''Objects that represents the entire simulation environment'''
 class World(object):
     
-    def __init__(self, eventHandler, serviceAreas, companies) -> None:
+    def __init__(self, eventHandler, serviceAreas : list[ServiceArea], companies) -> None:
         self.delayConfig = CONFIG.eventConfig.activityEventDelayRange
         self.eventHandler = eventHandler
         self.serviceAreas = serviceAreas
@@ -33,6 +33,11 @@ class World(object):
             print("Advancing Time failed")
             return
         self.eventHandler.HandleCurrentEvents()
+        
+        
+    def Terminate(self):
+        for serviceArea in self.serviceAreas:
+            serviceArea.Terminate()
         
                 
         

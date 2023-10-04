@@ -34,7 +34,7 @@ class SimConfig(object):
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         #Defines number of active companies in the simulation
-        self.COMPANIES = 1
+        self.COMPANIES = 3000
         #Defines the time factor (in seconds) to determine business activity durations
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         

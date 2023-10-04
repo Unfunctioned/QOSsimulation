@@ -1,6 +1,7 @@
 from queue import PriorityQueue
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement, DynamicServiceRequirement
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
+from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 '''Class used to manage the active network slices in a local service network'''
 class NetworkSliceManager(object):
     
@@ -57,5 +58,22 @@ class NetworkSliceManager(object):
         
         return serviceRequirement.defaultCapacityDemand, serviceRequirement.maxCapacityDemand
     
-    def GetAllNetworkSlices(self):
+    def GetAllNetworkSlices(self) -> list[NetworkSlice]:
         return list(self.sliceToKey.keys())
+    
+    def FindViolatedSlices(self, serviceArea, excessDemand):
+        violatedSlices = []
+        activationHistory = self.activationKeys.queue.copy()
+        activationHistory.reverse()
+        for key in activationHistory:
+            networkSlices = self.keysToSlice[key]
+            for networkSlice in networkSlices:
+                isSliceViolated = False
+                serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                for serviceRequirement in serviceRequirements:
+                    if excessDemand > 0:
+                        excessDemand -= serviceRequirement.defaultCapacityDemand
+                        if not isSliceViolated:
+                            violatedSlices.append(networkSlice)
+                            isSliceViolated = True
+        return violatedSlices

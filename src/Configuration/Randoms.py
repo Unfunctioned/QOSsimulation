@@ -13,3 +13,4 @@ class Randoms(object):
         self.latencyDelay = Random(0)
         self.workDurationSimulation = Random(0)
         self.businessProcessActivationSimulation = Random(0)
+        self.companyLocationGeneration = Random(0)
