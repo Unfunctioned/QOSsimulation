@@ -9,15 +9,6 @@ class NetworkSlice(object):
         self.activeServiceAreas = set()
         self.violationHistory = TimeDataRecorder(companyId, 2, ["ServiceArea", "ViolationStatusType"])
         self.violationHistory.createFileOutput(folderPath, "NetworkSlice")
-    
-    def ActivateServiceArea(self, currentTime, serviceArea, serviceRequirement):
-        self.addServiceRequirement(serviceArea, serviceRequirement)
-        serviceArea.ActivateNetworkSlice(currentTime, self)
-        
-    def DeactivateServiceArea(self, currentTime, serviceArea, serviceRequirement):
-        self.removeServiceRequirement(serviceArea, serviceRequirement)
-        if not self.hasActiveRequirements(serviceArea):
-            serviceArea.DeactivateNetworkSlice(currentTime, self)
         
     def addServiceRequirement(self, serviceArea, serviceRequirement):
         if not serviceArea in self.ServiceAreaRequirements:
@@ -41,5 +32,5 @@ class NetworkSlice(object):
             return self.ServiceAreaRequirements[serviceArea]
         raise KeyError("No requirements for given service area exist")
     
-    def AddViolation(self, currentTime, serviceAreaID, violationType : ViolationStatusType):
+    def UpdateViolationStatus(self, currentTime, serviceAreaID, violationType : ViolationStatusType):
         self.violationHistory.record(currentTime, [serviceAreaID, violationType.value[0]])

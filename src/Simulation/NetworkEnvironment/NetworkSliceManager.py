@@ -2,6 +2,8 @@ from queue import PriorityQueue
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement, DynamicServiceRequirement
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
+from Simulation.NetworkEnvironment.CapacityDemand import CapacityDemand
+from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
 '''Class used to manage the active network slices in a local service network'''
 class NetworkSliceManager(object):
     
@@ -93,4 +95,30 @@ class NetworkSliceManager(object):
                 if len(sliceViolations) > 0:
                     violations[networkSlice] = sliceViolations
         return violations
+    
+    def FindQoSViolations(self, serviceArea, latency, capacityDemand : CapacityDemand):
+        violations = {}
+        excessDemand = max(0, capacityDemand.private + capacityDemand.publicMinimum - capacityDemand.maximumCapacity)
+        activationHistory = self.activationKeys.queue.copy()
+        activationHistory.reverse()
+        for key in activationHistory:
+            networkSlices = self.keysToSlice[key]
+            networkSlice : NetworkSlice
+            for networkSlice in networkSlices:
+                serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                sliceViolations = []
+                serviceRequirement : ServiceRequirement
+                for serviceRequirement in serviceRequirements:
+                    if excessDemand > 0:
+                        excessDemand -= serviceRequirement.defaultCapacityDemand
+                        sliceViolations.append((serviceRequirement, ViolationStatusType.CAPACITY))
+                        continue
+                    if serviceRequirement.latency is None:
+                        continue
+                    if serviceRequirement.latency < latency:
+                        sliceViolations.append((serviceRequirement, ViolationStatusType.LATENCY))
+                if(len(sliceViolations) > 0):
+                    violations[networkSlice] = sliceViolations
+        return violations
+                
             

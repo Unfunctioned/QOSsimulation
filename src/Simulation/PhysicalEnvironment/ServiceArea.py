@@ -5,6 +5,7 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.NetworkEnvironment.LocalServiceNetwork import LocalServiceNetwork
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import DynamicServiceRequirement
+from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 '''Represents the service area in the simulation'''
 class ServiceArea(object):
     
@@ -22,7 +23,7 @@ class ServiceArea(object):
         self.activityHistory.createFileOutput(CONFIG.filePaths.serviceAreaPath, "ServiceArea")
         self.localServiceNetwork = None
     
-    def InitializeNetwork(self):
+    def InitializeNetwork(self, currentTime):
         localNetworkFolderPath = LocalServiceNetwork.InitializeOutputFolder(self.id)
         trafficCapacity = self.areaSize * CONFIG.simConfig.get_traffic_capacity(self.areaType)
         userDemands = (5, CONFIG.simConfig.BASIC_DATA_RATE_DEMAND)
@@ -30,8 +31,8 @@ class ServiceArea(object):
         publicSlice = PublicSlice(localNetworkFolderPath)
         
         self.localServiceNetwork = LocalServiceNetwork(self, localNetworkFolderPath, trafficCapacity, publicSlice)
-        publicSlice.ActivateServiceArea(0, self, serviceRequirement)
-        self.ChangeActivity(0, 1.0, 1.0)
+        self.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
+        self.ChangeActivity(currentTime, 1.0, 1.0)
     
     def ChangeActivity(self, currentTime, modifier, activityBoost):
         self.activity = min(self.default_activity * modifier + activityBoost, 1.0)
@@ -39,11 +40,14 @@ class ServiceArea(object):
         activeUsers = math.floor(self.activity * self.totalUsers)
         self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
-    def ActivateNetworkSlice(self, currentTime, networkSlice):
+    def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
+        networkSlice.addServiceRequirement(self, serviceRequirement)
         self.localServiceNetwork.ActivateNetworkSlice(currentTime, networkSlice)
         
-    def DeactivateNetworkSlice(self, currentTime, networkSlice):
-        self.localServiceNetwork.DeactivateNetworkSlice(currentTime, networkSlice)
+    def DeactivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
+                networkSlice.removeServiceRequirement(self, serviceRequirement)
+                if not networkSlice.hasActiveRequirements(self):
+                    self.localServiceNetwork.DeactivateNetworkSlice(currentTime, networkSlice)
         
     def Terminate(self):
         self.activityHistory.terminate()

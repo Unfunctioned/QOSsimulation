@@ -6,7 +6,7 @@ from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 class BusinessActivity(object):
     
     def __init__(self, expectedDuration) -> None:
-        self.serviceRequirement = ServiceRequirement(10, 11, 0.95, 0)
+        self.serviceRequirement = ServiceRequirement(10, 8, 0.95, 0)
         self.expectedDuration = expectedDuration
         
     def activate(self):
@@ -24,11 +24,11 @@ class AreaBasedActivity(BusinessActivity):
         
     def activate(self, currentTime, networkSlice : NetworkSlice):
         self.serviceRequirement.lastUpdateTime = currentTime
-        networkSlice.ActivateServiceArea(currentTime, self.location, self.serviceRequirement)
+        self.location.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
     def deactivate(self, currentTime, networkSlice : NetworkSlice):
         self.serviceRequirement.lastUpdateTime = currentTime
-        networkSlice.DeactivateServiceArea(currentTime, self.location, self.serviceRequirement)
+        self.location.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
 class PathBasedActivity(BusinessActivity):
     

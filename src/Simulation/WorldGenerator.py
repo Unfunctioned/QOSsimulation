@@ -34,7 +34,7 @@ class WorldGenerator(object):
         index = 0
         for (type, cell) in areaDefinitions:
             serviceArea = ServiceArea(index, cell, type)
-            serviceArea.InitializeNetwork()
+            serviceArea.InitializeNetwork(0)
             serviceAreas.append(serviceArea)
             self.generateActivityUpdateEvent(serviceArea)
             self.generateLatencyUpdateEvent(serviceArea)

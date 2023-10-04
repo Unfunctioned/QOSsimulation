@@ -1,3 +1,5 @@
+from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
+
 '''Used to represent the service requirements in different service areas'''
 class ServiceRequirement(object):
     
@@ -8,6 +10,19 @@ class ServiceRequirement(object):
         self.reliability = reliability
         self.accumulatedViolationTime = 0
         self.lastUpdateTime = creationTime
+        self.activeViolations = dict()
+        
+    def UpdateQoSStatus(self, currentTime, serviceAreaId : int, violationType : ViolationStatusType):
+        match violationType:
+            case ViolationStatusType.RECOVERY:
+                self.activeViolations.pop(serviceAreaId)
+                self.accumulatedViolationTime += currentTime - self.lastUpdateTime
+            case _ :
+                if serviceAreaId in self.activeViolations:
+                    self.accumulatedViolationTime += currentTime - self.lastUpdateTime
+                self.activeViolations[serviceAreaId] = violationType
+        self.lastUpdateTime = currentTime
+        
         
 '''Used to define ServiceRequirements accept a range of tolerance wrt. to QoS'''
 class DynamicServiceRequirement(ServiceRequirement):
