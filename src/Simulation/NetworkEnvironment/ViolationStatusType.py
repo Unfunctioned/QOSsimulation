@@ -1,7 +1,8 @@
 from enum import Enum
 
 '''Stores enums to declare QoS Violation types'''
-class ViolationType(Enum):
+class ViolationStatusType(Enum):
     CAPACITY = 'CAPACITY',
-    LATENCY = 'LATENCY'
+    LATENCY = 'LATENCY',
+    RECOVERY = 'RECOVERY'
     

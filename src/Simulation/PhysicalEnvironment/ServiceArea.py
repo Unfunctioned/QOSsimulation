@@ -26,7 +26,7 @@ class ServiceArea(object):
         localNetworkFolderPath = LocalServiceNetwork.InitializeOutputFolder(self.id)
         trafficCapacity = self.areaSize * CONFIG.simConfig.get_traffic_capacity(self.areaType)
         userDemands = (5, CONFIG.simConfig.BASIC_DATA_RATE_DEMAND)
-        serviceRequirement = DynamicServiceRequirement(userDemands, None, 0)
+        serviceRequirement = DynamicServiceRequirement(userDemands, None, 0, CONFIG.simConfig.PUBLIC_SLICE_RELIABILITY, 0)
         publicSlice = PublicSlice(localNetworkFolderPath)
         
         self.localServiceNetwork = LocalServiceNetwork(self, localNetworkFolderPath, trafficCapacity, publicSlice)

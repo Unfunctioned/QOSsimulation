@@ -7,6 +7,19 @@ class PublicSlice(NetworkSlice):
     def __init__(self, folderPath) -> None:
         super().__init__(-1, folderPath)
         
-    def GetServiceAreaRequirements(self, serviceArea) -> DynamicServiceRequirement:
+    def GetServiceAreaRequirements(self, serviceArea) -> set[DynamicServiceRequirement]:
         if serviceArea in self.ServiceAreaRequirements:
             return self.ServiceAreaRequirements[serviceArea]
+        
+    def GetMaxDataRate(self, serviceArea, demandLimitation):
+        serviceAreaRequirements = list(self.GetServiceAreaRequirements(serviceArea))
+        if(not len(serviceAreaRequirements) == 1):
+            raise ValueError("Invalid requirments")
+        serviceAreaRequirement : DynamicServiceRequirement
+        serviceAreaRequirement = serviceAreaRequirements[0]
+        if(demandLimitation < serviceAreaRequirement.defaultCapacityDemand):
+            return serviceAreaRequirement.minUserDemand
+        datarate = float(demandLimitation / max(serviceAreaRequirement.users, 1))
+        if (datarate < serviceAreaRequirement.minUserDemand):
+            raise ValueError("Invalid datarate result")
+        return datarate

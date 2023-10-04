@@ -61,19 +61,36 @@ class NetworkSliceManager(object):
     def GetAllNetworkSlices(self) -> list[NetworkSlice]:
         return list(self.sliceToKey.keys())
     
-    def FindViolatedSlices(self, serviceArea, excessDemand):
-        violatedSlices = []
+    def FindCapacityViolations(self, serviceArea, excessDemand):
+        violations = {}
         activationHistory = self.activationKeys.queue.copy()
         activationHistory.reverse()
         for key in activationHistory:
             networkSlices = self.keysToSlice[key]
             for networkSlice in networkSlices:
-                isSliceViolated = False
                 serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                sliceViolations = []
                 for serviceRequirement in serviceRequirements:
                     if excessDemand > 0:
                         excessDemand -= serviceRequirement.defaultCapacityDemand
-                        if not isSliceViolated:
-                            violatedSlices.append(networkSlice)
-                            isSliceViolated = True
-        return violatedSlices
+                        sliceViolations.append(serviceRequirement)
+                if len(sliceViolations) > 0:
+                    violations[networkSlice] = sliceViolations
+        return violations
+    
+    def FindLatencyViolations(self, serviceArea, currentLatency):
+        violations = {}
+        for key in self.activationKeys.queue:
+            networkSlices = self.keysToSlice[key]
+            networkSlice : NetworkSlice
+            sliceViolations = []
+            for networkSlice in networkSlices:
+                serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                serviceRequirement : ServiceRequirement
+                for serviceRequirement in serviceRequirements:
+                    if (serviceRequirement.latency < currentLatency):
+                        sliceViolations.append(serviceRequirement)
+                if len(sliceViolations) > 0:
+                    violations[networkSlice] = sliceViolations
+        return violations
+            

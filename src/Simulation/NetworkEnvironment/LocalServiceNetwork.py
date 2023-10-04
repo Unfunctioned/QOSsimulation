@@ -2,8 +2,10 @@ from Configuration.globals import CONFIG
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.NetworkEnvironment.NetworkSliceManager import NetworkSliceManager
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
-from Simulation.NetworkEnvironment.ViolationType import ViolationType
+from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
 from Simulation.NetworkEnvironment.ActivationType import ActivationType
+from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
+from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
 '''Represents the local service network providing services in a service area'''
 class LocalServiceNetwork(object):
     
@@ -39,9 +41,16 @@ class LocalServiceNetwork(object):
         #Initialize slice activation history
         self.sliceActivationHistory = TimeDataRecorder(serviceArea.id, 2, ["CompanyID", "ActivationType"])
         self.sliceActivationHistory.createFileOutput(folderPath, "SliceActivationHistory")
-        
+        #Network Slices with capacity violations in the last update
+        self.currentCapacityViolations = []
+        #Network Slices with latency violations in the last update
+        self.currentLatencyViolations = []
+        #Last update time
+        self.lastUpdateTime = 0
+                
     def UpdateActivity(self, currentTime, basicUserCount):
         self.basicUsers = basicUserCount
+        privateDemand, minDemand = self.GetCurrentDemand()
         serviceRequirements = self.publicSlice.GetServiceAreaRequirements(self.serviceArea)
         if not len(serviceRequirements) == 1:
             raise ValueError("Invalid requirements")
@@ -49,17 +58,73 @@ class LocalServiceNetwork(object):
 
         #Baseline capacity update
         #Calculate the demand of private network slices (belonging to companies)
-        privateDemand = self.sliceManager.GetPrivateDemand(self.serviceArea)
-        (minDemand, maxDemand) = self.sliceManager.GetPublicDemandRange(self.serviceArea, self.publicSlice)
+        capacityRecoveries = self.FindAndValidateCapacityRequirements(currentTime, privateDemand, minDemand)
+        self.MaxDataRatePerUser = self.publicSlice.GetMaxDataRate(self.serviceArea, self.totalTrafficCapacity - privateDemand)
+        #self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
+        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
+        
+    def FindAndValidateCapacityRequirements(self, currentTime, privateDemand, minDemand):
+        capacityViolations = self.GetCapacityViolations(privateDemand, minDemand)
+        capacityRecoveries = []
+        if not capacityViolations is None:
+            capacityRecoveries = self.ValidateCapacityRequirements(currentTime, capacityViolations)
+            self.currentCapacityViolations = capacityViolations.keys()
+        return capacityRecoveries
+            
+        #latencyViolations = self.GetLatencyViolations()
+        #latencyRecoveries = []
+        #if not latencyViolations is None:
+        #    latencyRecoveries = self.ValidateLatencyRequirements(currentTime, latencyViolations)
+            
+    
+    def GetCapacityViolations(self, privateDemand, minDemand):
         if(self.totalTrafficCapacity < privateDemand + minDemand):
             excessDemand = privateDemand - (self.totalTrafficCapacity - minDemand)
-            #Record Capacity violation for slices, whose capcity demand cannot be met
-            violatedSlices = self.sliceManager.FindViolatedSlices(self.serviceArea, excessDemand)
-            for networkSlice in violatedSlices:
-                print("QoS Violation! {id}".format(id = networkSlice.companyId))
-                networkSlice.AddViolation(currentTime, self.serviceArea.id, ViolationType.CAPACITY)
-        self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
-        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
+            return self.sliceManager.FindCapacityViolations(self.serviceArea, excessDemand)
+        return None
+    
+    def GetLatencyViolations(self):
+        latencyViolations = self.sliceManager.FindLatencyViolations(self.serviceArea, self.latency)
+        if (len(latencyViolations) > 0):
+            return latencyViolations
+        return None
+        
+            
+            
+    def GetCurrentDemand(self):
+        privateDemand = self.sliceManager.GetPrivateDemand(self.serviceArea)
+        (minDemand, _) = self.sliceManager.GetPublicDemandRange(self.serviceArea, self.publicSlice)
+        return privateDemand, minDemand
+        
+    def ValidateCapacityRequirements(self, currentTime, violations):
+        for networkSlice in violations:
+            print("QoS Violation! {id}".format(id = networkSlice.companyId))
+            networkSlice.AddViolation(currentTime, self.serviceArea.id, ViolationStatusType.CAPACITY)
+        return self.UpdateAccumulatedViolationTime(currentTime, violations)
+        
+    def UpdateAccumulatedViolationTime(self, currentTime, violations : dict[NetworkSlice, ServiceRequirement]):
+        serviceRecoveries = []
+        for networkSlice in self.currentCapacityViolations:
+            serviceRecovery = True
+            if networkSlice in violations.keys():
+                serviceRecovery = False
+                serviceRequirements = networkSlice.GetServiceRequirement(self.serviceArea)
+                violatedRequirements = violations[networkSlice]
+                requirement : ServiceRequirement
+                for requirement in serviceRequirements:
+                    if (requirement in violatedRequirements and not requirement.lastUpdateTime == currentTime):
+                        requirement.accumulatedViolationTime += currentTime - self.lastUpdateTime
+                        requirement.lastUpdateTime = currentTime
+                        serviceRecovery = False
+            if serviceRecovery:
+                   serviceRecoveries.append(networkSlice)
+        return serviceRecoveries
+    
+    def ValidateLatencyRequirements(self, currentTime, violations):
+        serviceRecoveries = []
+        for networkSlice in self.currentLatencyViolations:
+            serviceRecovery = True
+    #        if networkSlice in violations.keys():
         
     def UpdateLatency(self, currentTime, modifier):
         self.latency = self._defaultLatency * modifier
@@ -67,11 +132,13 @@ class LocalServiceNetwork(object):
         
     def ActivateNetworkSlice(self, currentTime, networkSlice):
         self.sliceManager.addNetworkSlice(currentTime, networkSlice)
-        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.ACTIVATION.value[0]])
+        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.ACTIVATION])
+        self.UpdateActivity(currentTime, self.basicUsers)
         
     def DeactivateNetworkSlice(self, currentTime, networkSlice):
         self.sliceManager.removeNetworkSlice(networkSlice)
-        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION.value[0]])
+        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION])
+        self.UpdateActivity(currentTime, self.basicUsers)
         
     def terminate(self):
         self.networkCapacityHistory.terminate()

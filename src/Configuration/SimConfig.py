@@ -34,9 +34,11 @@ class SimConfig(object):
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         #Defines number of active companies in the simulation
-        self.COMPANIES = 3000
+        self.COMPANIES = 1
         #Defines the time factor (in seconds) to determine business activity durations
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
+        #Reliablity of public slices
+        self.PUBLIC_SLICE_RELIABILITY = 0.99
         
     def scale(self, value):
         return value * (self.SCALE ** 2)

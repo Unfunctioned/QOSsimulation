@@ -1,5 +1,5 @@
 from DataOutput.TimeDataRecorder import TimeDataRecorder
-from Simulation.NetworkEnvironment.ViolationType import ViolationType
+from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
 '''Defines the class representing network slices in the simulation'''
 class NetworkSlice(object):
     
@@ -7,7 +7,7 @@ class NetworkSlice(object):
         self.companyId = companyId
         self.ServiceAreaRequirements = dict()
         self.activeServiceAreas = set()
-        self.violationHistory = TimeDataRecorder(companyId, 2, ["ServiceArea", "ViolationType"])
+        self.violationHistory = TimeDataRecorder(companyId, 2, ["ServiceArea", "ViolationStatusType"])
         self.violationHistory.createFileOutput(folderPath, "NetworkSlice")
     
     def ActivateServiceArea(self, currentTime, serviceArea, serviceRequirement):
@@ -41,5 +41,5 @@ class NetworkSlice(object):
             return self.ServiceAreaRequirements[serviceArea]
         raise KeyError("No requirements for given service area exist")
     
-    def AddViolation(self, currentTime, serviceAreaID, violationType : ViolationType):
+    def AddViolation(self, currentTime, serviceAreaID, violationType : ViolationStatusType):
         self.violationHistory.record(currentTime, [serviceAreaID, violationType.value[0]])
