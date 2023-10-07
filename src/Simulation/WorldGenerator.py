@@ -9,8 +9,10 @@ from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.UserActivityEvent import UserActivityEvent
 from Simulation.Events.LatencyEvent import LatencyEvent
 from Simulation.BusinessEnvironment.Company import Company
-from Simulation.Events.BusinessProcessActivationEvent import BusinessProcessActivationEvent
+from Simulation.Events.EventFactory import EventFactory
+from Simulation.BusinessEnvironment.BusinessActivity import *
 
+from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):
     
@@ -22,6 +24,8 @@ class WorldGenerator(object):
         self.matchPointsToCell(points)
         self.eventHandler = EventHandler()
         self.serviceAreas = self.generateServiceAreas()
+        BuisnessProcessFactory.SetBusinessProcessFlows()
+        BuisnessProcessFactory.SetServiceAreas(self.serviceAreas)
         self.world = World(self.eventHandler,
                            self.serviceAreas,
                            self.generateCompanies())
@@ -46,13 +50,22 @@ class WorldGenerator(object):
         companies = []
         for i in range(CONFIG.simConfig.COMPANIES):
             serviceArea = CONFIG.randoms.companyLocationGeneration.choice(self.serviceAreas)
-            company = Company(i, serviceArea)
+            businessProcessFlow = BuisnessProcessFactory.SelectBusinessProcessFlow()
+            company = Company(i, serviceArea, businessProcessFlow)
             delayRange = CONFIG.eventConfig.businessProcessActivationDelayRange
             eventTime = CONFIG.randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
-            activationEvent = BusinessProcessActivationEvent(eventTime, company)
+            activationEvent = EventFactory.generateBusinessProcessActivationEvent(eventTime, company)
             companies.append(company)
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
         return companies
+    
+    def generateProcess(self, companyLocation, customerLocation):
+        activities = []
+        expectedDuration = CONFIG.simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * CONFIG.randoms.workDurationSimulation.randint(1,6)
+        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
+        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
+        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
+        return activities
         
     def designateAreaTypes(self):
         cells = self.voronoi.cells

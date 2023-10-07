@@ -1,8 +1,6 @@
 from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
-from Simulation.Events.UserActivityEvent import UserActivityEvent
-from Simulation.Events.LatencyEvent import LatencyEvent
 from Configuration.globals import CONFIG
 
 '''Class to wrap PriorityQueue entries'''
@@ -23,7 +21,7 @@ class EventHandler(object):
             raise ValueError("Event time is in the past")
         self._activityEventQueue.put(PrioritizedItem(time, event))
         
-    def getNextEvent(self):
+    def getNextEvent(self) -> PrioritizedItem:
         return self._activityEventQueue.get()
     
     def getEventCount(self):
@@ -34,12 +32,12 @@ class EventHandler(object):
         
     def isEmpty(self):
         try:
-            entry = self._activityEventQueue.queue[0]
+            _ = self._activityEventQueue.queue[0]
             return False
         except:
             return True
     
-    def Peek(self):
+    def Peek(self) -> PrioritizedItem:
         try:
             entry = self._activityEventQueue.queue[0]
             return entry
@@ -55,24 +53,3 @@ class EventHandler(object):
             return True
         except:
             return False
-        
-    def HandleCurrentEvents(self):
-        getNext = True
-        while(getNext):
-            entry = self.getNextEvent()
-            event = entry.item
-            event.trigger()
-            if(event.generateFollowUpEvent and self.currentTime < CONFIG.simConfig.MAX_TIME):
-                followUpEvent = self.generateFollowUp(event)
-                self.addEvent(followUpEvent.t, followUpEvent)
-            if(self.isEmpty() or self.currentTime < (self.Peek()).priority):
-                getNext = False
-            
-        print(self.currentTime)
-        
-    def generateFollowUp(self, event):
-        if isinstance(event, UserActivityEvent):
-            return UserActivityEvent.generateFollowUp(event)
-        if isinstance(event, LatencyEvent):
-            return LatencyEvent.generateFollowUp(event)
-        ValueError("The given event did not match any known type")

@@ -1,6 +1,8 @@
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
+from Utilities.PathGenerator import PathGenerator
+from Configuration.globals import CONFIG
 
 '''Represents a business activity of a business process'''
 class BusinessActivity(object):
@@ -9,11 +11,11 @@ class BusinessActivity(object):
         self.serviceRequirement = ServiceRequirement(10, 8, 0.95, 0)
         self.expectedDuration = expectedDuration
         
-    def activate(self):
-        pass
+    def activate(self, currentTime, networkSlice : NetworkSlice):
+        raise AttributeError("Missing override method")
     
-    def deactivate(self):
-        pass
+    def deactivate(self, currentTime, networkSlice):
+        raise AttributeError("Missing override method")
         
         
 class AreaBasedActivity(BusinessActivity):
@@ -33,20 +35,33 @@ class AreaBasedActivity(BusinessActivity):
 class PathBasedActivity(BusinessActivity):
     
     def __init__(self, startLocation, endLocation) -> None:
-        expectedDuration = self.calculateExpectedDuration(startLocation, endLocation)
+        movementPath = PathGenerator.GenerateShortestPath(startLocation, endLocation)
+        if(len(movementPath) < 2):
+            raise ValueError("Invalid Path")
+        expectedDuration = PathGenerator.calculateExpectedDuration(movementPath) 
         super().__init__(expectedDuration)
+        self.movementPath = movementPath
+        self.startLocation : ServiceArea
         self.startLocation = startLocation
+        self.endLocation : ServiceArea
         self.endLocation = endLocation
+        self.dynamicPath = True
+        self.currentPosition = 0
         
-    def calculateExpectedDuration(self, startLocation, endLocation):
-        raise NotImplementedError()
+    def activate(self, currentTime, networkSlice : NetworkSlice):
+        self.serviceRequirement.lastUpdateTime = currentTime
+        self.startLocation.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+        
+    def deactivate(self, currentTime, networkSlice : NetworkSlice):
+        self.serviceRequirement.lastUpdateTime = currentTime
+        self.endLocation.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+                
         
         
 class TrajectoryBasedActivity(PathBasedActivity):
     
-    def __init__(self, movementPath) -> None:
-        if(len(movementPath) < 2):
-            raise ValueError("Invalid Path")
-        super().__init__(movementPath[0], movementPath[-1])
-        self.movementPath = movementPath
+    def __init__(self, startLocation : ServiceArea, endLocation : ServiceArea) -> None:
+        super().__init__(startLocation, endLocation)
+        self.dynamicPath = False
+        
         

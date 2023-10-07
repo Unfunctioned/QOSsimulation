@@ -1,15 +1,12 @@
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Configuration.globals import CONFIG
-from Simulation.PhysicalEnvironment.AreaType import AreaType
 from Simulation.Events.EventHandler import EventHandler
-from Simulation.Events.UserActivityEvent import UserActivityEvent
-from Simulation.Events.LatencyEvent import LatencyEvent
-from Simulation.BusinessEnvironment.Company import Company
-import math
+from Simulation.Events.Event import Event
+from Simulation.Events.EventFactory import EventFactory
 '''Objects that represents the entire simulation environment'''
 class World(object):
     
-    def __init__(self, eventHandler, serviceAreas : list[ServiceArea], companies) -> None:
+    def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies) -> None:
         self.delayConfig = CONFIG.eventConfig.activityEventDelayRange
         self.eventHandler = eventHandler
         self.serviceAreas = serviceAreas
@@ -32,7 +29,18 @@ class World(object):
         if(not self.eventHandler.advanceTime()):
             print("Advancing Time failed")
             return
-        self.eventHandler.HandleCurrentEvents()
+        print(self.eventHandler.currentTime)
+        getNext = True
+        while getNext:
+            entry = self.eventHandler.getNextEvent()
+            event : Event
+            event = entry.item
+            event.trigger()
+            if(event.generateFollowUpEvent and self.eventHandler.currentTime < CONFIG.simConfig.MAX_TIME):
+                followUpEvent = EventFactory.generateFollowUp(event)
+                self.eventHandler.addEvent(followUpEvent.t, followUpEvent)
+            if(self.eventHandler.isEmpty() or self.eventHandler.currentTime < (self.eventHandler.Peek()).priority):
+                getNext = False
         
         
     def Terminate(self):

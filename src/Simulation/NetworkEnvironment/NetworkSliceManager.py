@@ -25,13 +25,14 @@ class NetworkSliceManager(object):
         self.sliceToKey.pop(networkSlice)
         if (len(self.keysToSlice[key]) == 1):
             self.keysToSlice.pop(key)
+            self.activationKeys.queue.remove(key)
             return
         self.keysToSlice[key].remove(networkSlice)
         
-    def _getKey(self, networkSlice):
+    def _getKey(self, networkSlice : NetworkSlice):
         key = -1
         if not networkSlice in self.sliceToKey:
-            raise ValueError("Given nNetwork slice could not be found")
+            raise ValueError("Given Network slice could not be found")
         return self.sliceToKey[networkSlice]
     
     def GetPrivateDemand(self, serviceArea):

@@ -6,10 +6,11 @@ from Simulation.NetworkEnvironment.LocalServiceNetwork import LocalServiceNetwor
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import DynamicServiceRequirement
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
+from Utilities.VoronoiDiagram.Cell import Cell
 '''Represents the service area in the simulation'''
 class ServiceArea(object):
     
-    def __init__(self, id, cell, areaType) -> None:
+    def __init__(self, id, cell : Cell, areaType) -> None:
         self.id = id
         self.areaType = areaType
         self.cell = cell

@@ -1,27 +1,40 @@
 from Configuration.globals import CONFIG
-from Simulation.BusinessEnvironment.BusinessActivity import AreaBasedActivity, PathBasedActivity, TrajectoryBasedActivity
+from Simulation.BusinessEnvironment.BusinessActivity import AreaBasedActivity, PathBasedActivity, TrajectoryBasedActivity, BusinessActivity
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 '''Models the business process of a company'''
 class BusinessProcess(object):
     
-    def __init__(self, id, location, folderPath) -> None:
-        self.activities = self.generateProcess(location)
+    @staticmethod
+    def generateNewProcess():
+        pass
+    
+    def __init__(self, id, activities, folderPath) -> None:
+        self.activities = activities
+        self.activeActivityIndex = None
         businessRecorder = BasicDataRecorder(id, 5, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
         businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
         self._recordProcessDefinition(businessRecorder)
-        businessRecorder.terminate()       
-        
-    def generateProcess(self, companyLocation):
-        activities = []
-        expectedDuration = CONFIG.simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * CONFIG.randoms.workDurationSimulation.randint(1,6)
-        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
-        return activities
+        businessRecorder.terminate()
     
     def Execute(self, currentTime, networkSlice : NetworkSlice):
+        self.activeActivityIndex = 0
+        activity : BusinessActivity
         activity = self.activities[0]
         activity.activate(currentTime, networkSlice)
+        
+    def ExecuteNext(self, currentTime, networkSlice : NetworkSlice):
+        activity : BusinessActivity
+        activity = self.activities[self.activeActivityIndex]
+        nextActivity : BusinessActivity
+        nextActivity = None
+        if self.activeActivityIndex < len(self.activities) - 1:
+            self.activeActivityIndex += 1
+            nextActivity = self.activities[self.activeActivityIndex]
+            nextActivity.activate(currentTime, networkSlice)
+        activity.deactivate(currentTime, networkSlice)
+        return nextActivity
     
     def _recordProcessDefinition(self, businessRecorder : BasicDataRecorder):
         for i in range(len(self.activities)):
@@ -39,3 +52,8 @@ class BusinessProcess(object):
             return ActivityType.PATH
         else:
             raise ValueError("Unknown activity type")
+        
+    def GetCurrentActivity(self) -> BusinessActivity:
+        if self.activeActivityIndex is None:
+            return None
+        return self.activities[self.activeActivityIndex]

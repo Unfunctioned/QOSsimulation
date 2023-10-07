@@ -47,10 +47,6 @@ class LocalServiceNetwork(object):
         self.lastUpdateTime = 0
                 
     def UpdateActivity(self, currentTime, basicUserCount):
-        #Debug code
-        if(self.serviceArea.id == 24 and currentTime > 864):
-            x = 5
-            
         self.basicUsers = basicUserCount
         capacityDemand = self.GetCurrentDemand()
         serviceRequirements = self.publicSlice.GetServiceAreaRequirements(self.serviceArea)

@@ -14,3 +14,5 @@ class Randoms(object):
         self.workDurationSimulation = Random(0)
         self.businessProcessActivationSimulation = Random(0)
         self.companyLocationGeneration = Random(0)
+        self.flowSelector = Random(0)
+        self.customerLocationSelector = Random(0)
