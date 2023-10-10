@@ -24,9 +24,11 @@ class LocalServiceNetwork(object):
         #For equally distributed data rates
         self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
         #Default network Latency in ms
-        self._defaultLatency = 10
+        self._defaultLatency = CONFIG.simConfig.DEFAULT_LATENCY
         #Current network latency
         self.latency = self._defaultLatency
+        #Latency induced by network spikes
+        self.spikeLatency = 0
         #Network slices operating in the network
         self.publicSlice = publicSlice
         self.sliceManager = NetworkSliceManager()
@@ -61,14 +63,9 @@ class LocalServiceNetwork(object):
         self.UpdateRecoveredQoSRequirements(currentTime, violations)
         self.UpdateViolatedQoSRequirements(currentTime, violations)
         self.activeSliceViolations = violations
-        ##### OLD VERSION BELOW #####
-    
-        #Calculate the demand of private network slices (belonging to companies)
-        #capacityRecoveries = self.FindAndValidateCapacityRequirements(currentTime, privateDemand, minDemand)
-        #self.MaxDataRatePerUser = self.publicSlice.GetMaxDataRate(self.serviceArea, self.totalTrafficCapacity - privateDemand)
-        #self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
-        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
         
+        self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
+        self.lastUpdateTime = currentTime
         #latencyViolations = self.FindAndValidateLatencyRequirements()
         
     def UpdateRecoveredQoSRequirements(self, currentTime, currentViolations):        
@@ -106,7 +103,7 @@ class LocalServiceNetwork(object):
         capacityRecoveries = []
         if not capacityViolations is None:
             capacityRecoveries = self.RegisterCapacityViolations(currentTime, capacityViolations)
-            output = self.UpdateAccumulatedViolationTime(currentTime, capacityViolations)
+            capacityRecoveries = self.UpdateAccumulatedViolationTime(currentTime, capacityViolations)
             self.currentCapacityViolations = capacityViolations.keys()
         return capacityRecoveries
     
@@ -164,8 +161,10 @@ class LocalServiceNetwork(object):
                    serviceRecoveries.append(networkSlice)
         return serviceRecoveries
         
-    def UpdateLatency(self, currentTime, modifier):
-        self.latency = self._defaultLatency * modifier
+    def UpdateLatency(self, currentTime, modifier, spikeValue = 0):
+        self.latency = self._defaultLatency * modifier + spikeValue
+        if self.latency > 20:
+            raise ValueError("Latency is going out of control")
         self.networkQualityHistory.record(currentTime, [self.latency])
         
     def ActivateNetworkSlice(self, currentTime, networkSlice):

@@ -17,6 +17,8 @@ class EventHandler(object):
         self._activityEventQueue = PriorityQueue()
         
     def addEvent(self, time : int, event):
+        if not isinstance(time, int):
+            raise TypeError("Expected time to be of type int")
         if(time < self.currentTime):
             raise ValueError("Event time is in the past")
         self._activityEventQueue.put(PrioritizedItem(time, event))

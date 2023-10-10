@@ -23,12 +23,17 @@ class WorldGenerator(object):
         points = self.pointSpawner.SpawnPoints(CONFIG.simConfig.WEIGHTS)
         self.matchPointsToCell(points)
         self.eventHandler = EventHandler()
+        self.activityHistory = TimeDataRecorder(-1, 2, ["PROCESS_ID", "STATUS"])
+        self.activityHistory.createFileOutput(CONFIG.filePaths.simulationPath, "WorldActivity")
         self.serviceAreas = self.generateServiceAreas()
         BuisnessProcessFactory.SetBusinessProcessFlows()
         BuisnessProcessFactory.SetServiceAreas(self.serviceAreas)
+        EventFactory.InitializeOutput()
+        EventFactory.InitializeLatencySpikeTimes(self.serviceAreas)
         self.world = World(self.eventHandler,
                            self.serviceAreas,
-                           self.generateCompanies())
+                           self.generateCompanies(),
+                           self.activityHistory)
         self.world.printInfo()
         
     def generateServiceAreas(self):
@@ -51,7 +56,7 @@ class WorldGenerator(object):
         for i in range(CONFIG.simConfig.COMPANIES):
             serviceArea = CONFIG.randoms.companyLocationGeneration.choice(self.serviceAreas)
             businessProcessFlow = BuisnessProcessFactory.SelectBusinessProcessFlow()
-            company = Company(i, serviceArea, businessProcessFlow)
+            company = Company(i, serviceArea, businessProcessFlow, self.activityHistory)
             delayRange = CONFIG.eventConfig.businessProcessActivationDelayRange
             eventTime = CONFIG.randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
             activationEvent = EventFactory.generateBusinessProcessActivationEvent(eventTime, company)

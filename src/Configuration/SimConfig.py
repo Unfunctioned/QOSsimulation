@@ -8,7 +8,7 @@ class SimConfig(object):
         # Amount of weights used to define AreaTypes
         self.WEIGHTS = 500
         # Defines the max. duration of the simulation (soft bound) - used to stop event generation
-        self.MAX_TIME = 7200
+        self.MAX_TIME = 14400
         #Kilometers spanning the unit range 0.0 to 1.0 (the full map)
         self.SCALE = 100
         #user density rural per sq km
@@ -39,6 +39,9 @@ class SimConfig(object):
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         #Reliablity of public slices
         self.PUBLIC_SLICE_RELIABILITY = 0.99
+        
+        #Default latency for local service networks
+        self.DEFAULT_LATENCY = 9.5
         
     def scale(self, value):
         return value * (self.SCALE ** 2)

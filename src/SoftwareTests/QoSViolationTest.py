@@ -4,8 +4,6 @@ from Simulation.PhysicalEnvironment.AreaType import AreaType
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Configuration.globals import CONFIG
 from Simulation.BusinessEnvironment.Company import Company
-from Simulation.World import World
-from Simulation.Events.EventHandler import EventHandler
 
 class QoSViolationTest(unittest.TestCase):
     
@@ -30,11 +28,8 @@ class QoSViolationTest(unittest.TestCase):
         companies = self.setupCompanies(serviceArea, 100)
         for company in companies:
             company.ActivateBusinessProcess(100)
-        #serviceArea.ChangeActivity(1000, 1.0, 2.0) #Should result in an activity of 1.0 (due to being capped)
-        #self.assertEqual(serviceArea.activity, 1.0)
+        serviceArea.ChangeActivity(1000, 1.0, 2.0) #Should result in an activity of 1.0 (due to being capped)
+        self.assertEqual(serviceArea.activity, 1.0)
         
         #End test
         serviceArea.Terminate()
-        
-    def test_registerQoSPartialCapacityViolation(self):
-        pass

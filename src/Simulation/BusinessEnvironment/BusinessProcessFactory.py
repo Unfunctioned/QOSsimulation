@@ -3,6 +3,7 @@ from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.BusinessEnvironment.BusinessActivity import *
 from Configuration.globals import CONFIG
 from Utilities.PathGenerator import PathGenerator
+from DataOutput.TimeDataRecorder import TimeDataRecorder
 '''Factory used to generate business processes based on a business process flow'''
 class BuisnessProcessFactory(object):
     serviceAreas = None
@@ -23,22 +24,24 @@ class BuisnessProcessFactory(object):
             raise ValueError("Business Process Flows not initialized")
         return CONFIG.randoms.flowSelector.choice(BuisnessProcessFactory.flows)
     
-    def CreateBusinessActivities(companyLocation : ServiceArea, businessFlow : list[ActivityType]):
+    def CreateBusinessActivities(processId, currentTime, companyLocation : ServiceArea, businessFlow : list[ActivityType],
+                                 activityExecutionHistory : TimeDataRecorder):
         activities = []
+        validAreas = BuisnessProcessFactory.serviceAreas.copy()
+        validAreas.remove(companyLocation)
+        customerLocation = CONFIG.randoms.customerLocationSelector.choice(validAreas)
         for i in range(len(businessFlow)):
             item = businessFlow[i]
             activity = None
             match item:
                 case ActivityType.AREA:
                     expectedDuration = CONFIG.simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * CONFIG.randoms.workDurationSimulation.randint(1,6)
-                    customerLocation = CONFIG.randoms.customerLocationSelector.choice(BuisnessProcessFactory.serviceAreas)
                     location = companyLocation if i == 0 else customerLocation
-                    activity = AreaBasedActivity(expectedDuration, location)
+                    activity = AreaBasedActivity(processId, currentTime, activityExecutionHistory, expectedDuration, location)
+                case ActivityType.TRAJECTORY:
+                    activity = TrajectoryBasedActivity(processId, currentTime, activityExecutionHistory, companyLocation, customerLocation)
                 case ActivityType.PATH:
                     raise NotImplementedError()
-                case ActivityType.TRAJECTORY:
-                    customerLocation = CONFIG.randoms.customerLocationSelector.choice(BuisnessProcessFactory.serviceAreas)
-                    activity = TrajectoryBasedActivity(companyLocation, customerLocation)
                 case _:
                     raise ValueError("Invalid type")
             if activity is None:

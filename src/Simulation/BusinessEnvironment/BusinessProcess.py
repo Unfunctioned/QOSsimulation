@@ -3,6 +3,8 @@ from Simulation.BusinessEnvironment.BusinessActivity import AreaBasedActivity, P
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
+from DataOutput.TimeDataRecorder import TimeDataRecorder
+from Simulation.BusinessEnvironment.BusinessActivity import BusinessActivity
 '''Models the business process of a company'''
 class BusinessProcess(object):
     
@@ -10,10 +12,13 @@ class BusinessProcess(object):
     def generateNewProcess():
         pass
     
-    def __init__(self, id, activities, folderPath) -> None:
+    def __init__(self, id, activities : list[BusinessActivity], folderPath, 
+                 activityHistory : TimeDataRecorder) -> None:
+        self.id = id
         self.activities = activities
         self.activeActivityIndex = None
-        businessRecorder = BasicDataRecorder(id, 5, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
+        self.activityHistory = activityHistory
+        businessRecorder = BasicDataRecorder(self.id, 5, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
         businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
         self._recordProcessDefinition(businessRecorder)
         businessRecorder.terminate()

@@ -117,12 +117,12 @@ class PathGenerator(object):
             raise ValueError("Invalid border")
         return ps[0], ps[1]
     
-    def CalculateMovementDuration(startPoint, endPoint, isLocalSpeed = False):
+    def CalculateMovementDuration(startPoint, endPoint, isLocalSpeed = False) -> int:
         distance = PathGenerator.CalculateDistance(startPoint, endPoint)
         scaledDistance = distance * CONFIG.simConfig.SCALE
         if isLocalSpeed:
-            return CONFIG.mobilityConfig.localSpeed * scaledDistance
-        return CONFIG.mobilityConfig.passingSpeed * scaledDistance
+            return int(math.ceil(CONFIG.mobilityConfig.localSpeed * scaledDistance))
+        return int(math.ceil(CONFIG.mobilityConfig.passingSpeed * scaledDistance))
         
         
             

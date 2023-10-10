@@ -3,15 +3,18 @@ from Configuration.globals import CONFIG
 from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.Event import Event
 from Simulation.Events.EventFactory import EventFactory
+from DataOutput.TimeDataRecorder import TimeDataRecorder
 '''Objects that represents the entire simulation environment'''
 class World(object):
     
-    def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies) -> None:
+    def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies,
+                 activityHistory : TimeDataRecorder) -> None:
         self.delayConfig = CONFIG.eventConfig.activityEventDelayRange
         self.eventHandler = eventHandler
         self.serviceAreas = serviceAreas
         self.companies = companies
         self.activeProcesses = set()
+        self.activityHistory = activityHistory
         
     def isRunning(self):
         if (self.eventHandler.currentTime > 0 and self.eventHandler.isEmpty()):
@@ -27,7 +30,7 @@ class World(object):
         
     def Update(self):
         if(not self.eventHandler.advanceTime()):
-            print("Advancing Time failed")
+            raise AttributeError("Advancing Time failed")
             return
         print(self.eventHandler.currentTime)
         getNext = True
@@ -46,6 +49,7 @@ class World(object):
     def Terminate(self):
         for serviceArea in self.serviceAreas:
             serviceArea.Terminate()
+        self.activityHistory.terminate()
         
                 
         

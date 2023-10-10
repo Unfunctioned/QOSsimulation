@@ -1,7 +1,16 @@
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
+from Configuration.globals import CONFIG
+
 
 '''Used to represent the service requirements in different service areas'''
 class ServiceRequirement(object):
+    
+    @staticmethod
+    def GenerateDefaultRequirements(currentTime):
+        capacity = CONFIG.serviceConfig.CAPACITY_DEFAULT
+        latency = CONFIG.serviceConfig.LATENCY_DEFAULT
+        reliability = CONFIG.serviceConfig.RELIABILITY_DEFAULT
+        return ServiceRequirement(capacity, latency, reliability, currentTime)
     
     def __init__(self, capacity, latency, reliability, creationTime) -> None:
         self.defaultCapacityDemand = capacity

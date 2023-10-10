@@ -4,6 +4,8 @@ from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Simulation.NetworkEnvironment.CapacityDemand import CapacityDemand
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
+from DataOutput.TimeDataRecorder import TimeDataRecorder
+import traceback
 '''Class used to manage the active network slices in a local service network'''
 class NetworkSliceManager(object):
     
@@ -13,14 +15,17 @@ class NetworkSliceManager(object):
         self.sliceToKey = dict()
         
     def addNetworkSlice(self, activationTime, networkSlice):
-        self.activationKeys.put(activationTime)
+        if not activationTime in self.activationKeys.queue:
+            self.activationKeys.put(activationTime)
+        if networkSlice in self.sliceToKey:
+            self.removeNetworkSlice(networkSlice)
         if activationTime in self.keysToSlice:
             self.keysToSlice[activationTime].append(networkSlice)
         else:
             self.keysToSlice[activationTime] = [networkSlice]
         self.sliceToKey[networkSlice] = activationTime
             
-    def removeNetworkSlice(self, networkSlice):
+    def removeNetworkSlice(self, networkSlice : NetworkSlice):
         key = self._getKey(networkSlice)
         self.sliceToKey.pop(networkSlice)
         if (len(self.keysToSlice[key]) == 1):
