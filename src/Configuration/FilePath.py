@@ -22,6 +22,9 @@ class FilePath(BaseConfig):
         self.companyPath = Path.joinpath(self.simulationPath, "Companies")
         if not Path.exists(self.companyPath):
             Path.mkdir(self.companyPath)
+        self.plotPath = self.currentDirectory.joinpath('Plots')
+        if not Path.exists(self.plotPath):
+            Path.mkdir(self.plotPath)
         
     def jsonable(self):
         jsonDict = self.__dict__.copy()

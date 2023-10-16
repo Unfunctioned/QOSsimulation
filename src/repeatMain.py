@@ -7,19 +7,24 @@ from pathlib import Path
 from datetime import datetime
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 import Configuration.globals as globals
-from Evaluation.Plotter import Plotter
+from Evaluation.Plotting.Plotter import Plotter
 import time
 
 MAX_SPIKE_DURATIONS = [1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
 ANALYSIS_PATH = Path.joinpath(Path.cwd(), "Analysis")
-BASE_NAME = Path.joinpath(ANALYSIS_PATH, "AnalysisResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
-RECORDER = BasicDataRecorder(0, ["RUN_NO", "MIN_LATENCY_SPIKE_DURATION", "MAX_LATENCY_SPIKE_DURATION",
+LATENCY_NAME = Path.joinpath(ANALYSIS_PATH, "LatencyResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
+LATENCY_RECORDER = BasicDataRecorder(0, ["RUN_NO", "MIN_LATENCY_SPIKE_DURATION", "MAX_LATENCY_SPIKE_DURATION",
                                     "SUCCESS_RATE", "MIN_NETWORK_QUALITY", "MAX_NETWORK_QUALITY"])
+FAILURE_NAME = Path.joinpath(ANALYSIS_PATH, "FailureResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
+FAILURE_RECORDER = BasicDataRecorder(0, ["RUN_NO", "AREA_FAILS", "PATH_FAILS", "TRAJECTORY_FAILS", "TOTAL_FAILS"])
+
+RECORDERS = dict()
 
 def setup():
     if(not Path.exists(ANALYSIS_PATH)):
         Path.mkdir(ANALYSIS_PATH)
-    RECORDER.createFileOutput(ANALYSIS_PATH, BASE_NAME)
+    LATENCY_RECORDER.createFileOutput(ANALYSIS_PATH, LATENCY_NAME)
+    FAILURE_RECORDER.createFileOutput(ANALYSIS_PATH, FAILURE_NAME)
 
 
 def main():
@@ -37,15 +42,21 @@ def main():
         analyzer.analyze()
         #analyzer.printResults()
         analyzer.writeData()
-        RECORDER.record([i, 1, MAX_SPIKE_DURATIONS[i], analyzer.qualityAnalyzer.rates.success,
+        LATENCY_RECORDER.record([i, 1, MAX_SPIKE_DURATIONS[i], analyzer.qualityAnalyzer.rates.success,
                          analyzer.networkAnalyzer.qualityRange.min, 
                          analyzer.networkAnalyzer.qualityRange.max])
+        FAILURE_RECORDER.record([i, analyzer.failureAnalyzer.acitivityFailureCount.area,
+                                 analyzer.failureAnalyzer.acitivityFailureCount.path,
+                                 analyzer.failureAnalyzer.acitivityFailureCount.trajectory,
+                                 analyzer.failureAnalyzer.acitivityFailureCount.total])
         window.getImage(i)
         print("Executed simulation #" + str(i) + ": " + str(time.time()-startTime) + "s")
-    RECORDER.terminate()
+    LATENCY_RECORDER.terminate()
     
 
 if __name__ == "__main__":
     setup()
     main()
-    Plotter.plot(RECORDER.filePath)
+    Plotter.addPath('Latency', LATENCY_RECORDER.filePath)
+    Plotter.addPath('Failure', FAILURE_RECORDER.filePath)
+    Plotter.plot()

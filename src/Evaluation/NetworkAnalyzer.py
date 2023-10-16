@@ -4,6 +4,7 @@ import pandas
 from pandas import DataFrame, Series
 from Evaluation.BaseAnalyzer import BaseAnalyzer
 from dataclasses import dataclass
+from DataOutput.BasicDataRecorder import BasicDataRecorder
 
 @dataclass
 class QualityRangeItem:

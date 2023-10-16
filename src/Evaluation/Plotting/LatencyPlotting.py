@@ -1,12 +1,12 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas
+from Configuration.globals import GetConfig
 
-class Plotter: 
-  
+'''Used to plot figures for the latency analysis'''
+class LatencyPlotter:
+
     def plot(fileName : Path):
-        if not Path.exists(Path.joinpath(Path.cwd(), 'Plots')):
-            Path.mkdir(Path.joinpath(Path.cwd(), 'Plots'))
         plotDataPath = Path.joinpath(Path.cwd(),'Analysis', fileName)
         dateStr = (fileName.name.split('-', 1)[1]).split('.')[0]
         data = pandas.read_csv(plotDataPath, delimiter=" ")
@@ -22,6 +22,7 @@ class Plotter:
         ax2 = fig2.add_subplot(1,1,1)
         ax2.plot(data['MAX_LATENCY_SPIKE_DURATION'], data['MIN_NETWORK_QUALITY'].apply(lambda x : x * 100))
         ax2.plot(data['MAX_LATENCY_SPIKE_DURATION'], data['MAX_NETWORK_QUALITY'].apply(lambda x : x * 100))
+        ax2.legend(["Min. Quality", "Max. Quality"], loc ="lower right") 
         ax2.set_title('Network Quality')
         ax2.set_xlabel('Max Latency Spike Duration (s)')
         ax2.set_ylabel('Network Quality (%)')
@@ -31,14 +32,15 @@ class Plotter:
         ax3 = fig3.add_subplot(1,1,1)
         ax3.plot(data['RUN_NO'], data['MIN_LATENCY_SPIKE_DURATION'])
         ax3.plot(data['RUN_NO'], data['MAX_LATENCY_SPIKE_DURATION'])
+        ax3.legend(["Min. Duration", "Max. Duration"], loc ="lower right")
         ax3.set_title('Latency Spike Configurations')
         ax3.set_xlabel('Simulation Number (#)')
         ax3.set_ylabel('Latency Spike Duration (s)')
         fig3.add_subplot(ax3)
         
-        fig1.savefig(Path.joinpath(Path.cwd(), 'Plots', 'SuccessRate-' + dateStr + '.png'))
-        fig2.savefig(Path.joinpath(Path.cwd(), 'Plots', 'NetworkQuality-' + dateStr + '.png'))
-        fig3.savefig(Path.joinpath(Path.cwd(), 'Plots', 'LatencyConfigurations-' + dateStr + '.png'))
+        fig1.savefig(GetConfig().filePaths.plotPath.joinpath('SuccessRate-' + dateStr + '.png'))
+        fig2.savefig(GetConfig().filePaths.plotPath.joinpath('NetworkQuality-' + dateStr + '.png'))
+        fig3.savefig(GetConfig().filePaths.plotPath.joinpath('LatencyConfigurations-' + dateStr + '.png'))
         
         fig1.show()
         fig2.show()
