@@ -4,11 +4,11 @@ import pandas
 
 class Plotter: 
   
-    def plot(fileName):
+    def plot(fileName : Path):
         if not Path.exists(Path.joinpath(Path.cwd(), 'Plots')):
             Path.mkdir(Path.joinpath(Path.cwd(), 'Plots'))
         plotDataPath = Path.joinpath(Path.cwd(),'Analysis', fileName)
-        dateStr = (fileName.split('-', 1)[1]).split('.')[0]
+        dateStr = (fileName.name.split('-', 1)[1]).split('.')[0]
         data = pandas.read_csv(plotDataPath, delimiter=" ")
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(1,1,1)
