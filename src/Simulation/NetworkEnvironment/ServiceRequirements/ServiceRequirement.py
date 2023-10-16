@@ -1,5 +1,5 @@
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 
 
 '''Used to represent the service requirements in different service areas'''
@@ -7,9 +7,9 @@ class ServiceRequirement(object):
     
     @staticmethod
     def GenerateDefaultRequirements(currentTime):
-        capacity = CONFIG.serviceConfig.CAPACITY_DEFAULT
-        latency = CONFIG.serviceConfig.LATENCY_DEFAULT
-        reliability = CONFIG.serviceConfig.RELIABILITY_DEFAULT
+        capacity = GetConfig().serviceConfig.CAPACITY_DEFAULT
+        latency = GetConfig().serviceConfig.LATENCY_DEFAULT
+        reliability = GetConfig().serviceConfig.RELIABILITY_DEFAULT
         return ServiceRequirement(capacity, latency, reliability, currentTime)
     
     def __init__(self, capacity, latency, reliability, creationTime) -> None:
@@ -17,19 +17,25 @@ class ServiceRequirement(object):
         self.latency = latency
         #A value between 0.0 and 1.0 representing a percentage how available the network service must be
         self.reliability = reliability
-        self.accumulatedViolationTime = 0
+        self.totalViolationTime = 0
+        self.latencyViolationTime = 0
+        self.capacityViolationTime = 0
         self.lastUpdateTime = creationTime
         self.activeViolations = dict()
         
     def UpdateQoSStatus(self, currentTime, serviceAreaId : int, violationType : ViolationStatusType):
-        match violationType:
-            case ViolationStatusType.RECOVERY:
-                self.activeViolations.pop(serviceAreaId)
-                self.accumulatedViolationTime += currentTime - self.lastUpdateTime
-            case _ :
-                if serviceAreaId in self.activeViolations:
-                    self.accumulatedViolationTime += currentTime - self.lastUpdateTime
-                self.activeViolations[serviceAreaId] = violationType
+        if serviceAreaId in self.activeViolations:                
+            lastViolationType = self.activeViolations[serviceAreaId]
+            violationTime = currentTime - self.lastUpdateTime
+            if lastViolationType == ViolationStatusType.CAPACITY or lastViolationType == ViolationStatusType.PARTIAL_CAPACITY:
+                self.capacityViolationTime = violationTime
+            else:
+                self.latencyViolationTime = violationTime
+            match violationType:
+                case ViolationStatusType.RECOVERY:
+                    self.activeViolations.pop(serviceAreaId)
+            self.totalViolationTime += currentTime - self.lastUpdateTime
+        self.activeViolations[serviceAreaId] = violationType
         self.lastUpdateTime = currentTime
         
         

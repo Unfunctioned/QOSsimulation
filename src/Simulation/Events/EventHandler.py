@@ -1,7 +1,7 @@
 from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
-from Configuration.globals import CONFIG
+from Simulation.Events.BusinessEvents.BusinessEvent import BusinessEvent
 
 '''Class to wrap PriorityQueue entries'''
 @dataclass(order=True)
@@ -55,3 +55,6 @@ class EventHandler(object):
             return True
         except:
             return False
+        
+    def hasBusinessActivityEvent(self):
+        return any(filter(lambda x : isinstance(x.item, BusinessEvent), self._activityEventQueue.queue))

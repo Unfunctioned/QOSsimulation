@@ -1,4 +1,4 @@
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Simulation.Events.Event import Event
 import math
@@ -7,34 +7,37 @@ class UserActivityEvent(Event):
     
     @staticmethod
     def generateEvent(currentTime, serviceArea):
-        delayConfig = CONFIG.eventConfig.activityEventDelayRange
-        delay = CONFIG.randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
+        delayConfig = GetConfig().eventConfig.activityEventDelayRange
+        delay = GetConfig().randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
         eventTime = currentTime + delay
         return UserActivityEvent(eventTime, serviceArea)
     
     @staticmethod
-    def generateFollowUp(previousEvent):
-        delayConfig = CONFIG.eventConfig.activityEventDelayRange
-        delay = CONFIG.randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
-        eventTime = previousEvent.t + delay
+    def generateFollowUp(previousEvent, eventTime):
         newEvent = UserActivityEvent(eventTime, previousEvent.area)
-        remainingBoostDuration = previousEvent.baseActivityDuration - delay
-        if(remainingBoostDuration > 0):
-            newEvent.baseActivityDuration = remainingBoostDuration
-            newEvent.baseActivityBoost = previousEvent.baseActivityBoost
-            if(remainingBoostDuration < delay):
-                newEvent.t = previousEvent.t + remainingBoostDuration
         return newEvent
         
     def __init__(self, eventTime, area : ServiceArea) -> None:
         super().__init__(eventTime)
         self.area = area
-        self.baseActivityBoost = 0.0 #CONFIG.randoms.activitySimulation.random()
-        durationConfig = CONFIG.simConfig.MAX_NETWORK_ACTIVITY_SPIKE_DURATION
-        durationFactor = CONFIG.randoms.activitySimulation.random() * 1.2 - 0.2
-        self.baseActivityDuration = math.floor(durationConfig * durationFactor)
+        self.modifier = 0.9 + GetConfig().randoms.activitySimulation.random()*0.2
         self.generateFollowUpEvent = True        
         
     def trigger(self):
-        modifier = 0.9 + CONFIG.randoms.activitySimulation.random()*0.2
-        self.area.ChangeActivity(self.t, modifier, self.baseActivityBoost)
+        self.area.ChangeActivity(self.t, self.modifier)
+        
+'''Event used to trigger "busy hour" periods, with high user activities'''
+class UserActivitySpikeEvent(UserActivityEvent):
+    
+    def __init__(self, eventTime, area: ServiceArea) -> None:
+        super().__init__(eventTime, area)
+        durationConfig = GetConfig().eventConfig.userActivitySpikeDurationRange
+        self.activityBoostDuration = GetConfig().randoms.userActivitySpikeSimulation.randint(durationConfig[0], durationConfig[1])
+        self.spike = GetConfig().randoms.userActivitySpikeSimulation.random() - GetConfig().simConfig.get_default_activity(self.area.areaType)
+    
+    def SetSpike(self, spike, duration : int):
+        self.spike = spike
+        self.activityBoostDuration = duration
+        
+    def trigger(self):
+        self.area.ChangeActivity(self.t, self.modifier, self.spike)

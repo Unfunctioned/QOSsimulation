@@ -4,7 +4,7 @@ from queue import PriorityQueue
 import math
 from dataclasses import dataclass, field
 from typing import Any
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 
 '''Class to wrap PriorityQueue entries'''
 @dataclass(order=True)
@@ -94,15 +94,15 @@ class PathGenerator(object):
         totalTime = 0
         if len(movementPath) == 2:
             unitDistance = PathGenerator.CalculateDistance(movementPath[0].cell.site, movementPath[1].cell.site)
-            scaledDistance = CONFIG.simConfig.SCALE * unitDistance
-            return scaledDistance * CONFIG.mobilityConfig.localSpeed
+            scaledDistance = GetConfig().simConfig.SCALE * unitDistance
+            return scaledDistance * GetConfig().mobilityConfig.localSpeed
         for i in range(len(movementPath)-1):
             unitDistance = PathGenerator.CalculateDistance(movementPath[i].cell.site, movementPath[i+1].cell.site)
-            scaledDistance = CONFIG.simConfig.SCALE * unitDistance
+            scaledDistance = GetConfig().simConfig.SCALE * unitDistance
             if i == 0 or i == len(movementPath)-2:
-                totalTime += scaledDistance * (CONFIG.mobilityConfig.localSpeed + CONFIG.mobilityConfig.passingSpeed) * 0.5
+                totalTime += scaledDistance * (GetConfig().mobilityConfig.localSpeed + GetConfig().mobilityConfig.passingSpeed) * 0.5
                 continue
-            totalTime += scaledDistance * CONFIG.mobilityConfig.passingSpeed
+            totalTime += scaledDistance * GetConfig().mobilityConfig.passingSpeed
         return totalTime
     
     def FindCommonBorder(startingPosition : ServiceArea, endPosition : ServiceArea):
@@ -119,10 +119,10 @@ class PathGenerator(object):
     
     def CalculateMovementDuration(startPoint, endPoint, isLocalSpeed = False) -> int:
         distance = PathGenerator.CalculateDistance(startPoint, endPoint)
-        scaledDistance = distance * CONFIG.simConfig.SCALE
+        scaledDistance = distance * GetConfig().simConfig.SCALE
         if isLocalSpeed:
-            return int(math.ceil(CONFIG.mobilityConfig.localSpeed * scaledDistance))
-        return int(math.ceil(CONFIG.mobilityConfig.passingSpeed * scaledDistance))
+            return int(math.ceil(GetConfig().mobilityConfig.localSpeed * scaledDistance))
+        return int(math.ceil(GetConfig().mobilityConfig.passingSpeed * scaledDistance))
         
         
             

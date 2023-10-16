@@ -1,4 +1,4 @@
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.NetworkEnvironment.NetworkSliceManager import NetworkSliceManager
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
@@ -12,8 +12,8 @@ class LocalServiceNetwork(object):
     
     @staticmethod
     def InitializeOutputFolder(id):
-        path = CONFIG.filePaths.localServiceNetworkPath
-        folderPath = CONFIG.filePaths.createInstanceOutputFolder(path, "LocalServiceNetwork", id)
+        path = GetConfig().filePaths.localServiceNetworkPath
+        folderPath = GetConfig().filePaths.createInstanceOutputFolder(path, "LocalServiceNetwork", id)
         return folderPath
     
     def __init__(self, serviceArea, folderPath, trafficCapacity, publicSlice : PublicSlice) -> None:
@@ -24,7 +24,7 @@ class LocalServiceNetwork(object):
         #For equally distributed data rates
         self.MaxDataRatePerUser = self.totalTrafficCapacity / max(1, self.basicUsers)
         #Default network Latency in ms
-        self._defaultLatency = CONFIG.simConfig.DEFAULT_LATENCY
+        self._defaultLatency = GetConfig().simConfig.DEFAULT_LATENCY
         #Current network latency
         self.latency = self._defaultLatency
         #Latency induced by network spikes
@@ -33,15 +33,15 @@ class LocalServiceNetwork(object):
         self.publicSlice = publicSlice
         self.sliceManager = NetworkSliceManager()
         # Inititalize recording of network capacity changes
-        self.networkCapacityHistory = TimeDataRecorder(serviceArea.id, 2, ["TotalCapacity", "MaxDataRate"])
+        self.networkCapacityHistory = TimeDataRecorder(serviceArea.id, ["TotalCapacity", "MaxDataRate"])
         self.networkCapacityHistory.createFileOutput(folderPath, "CapacityHistory")
         self.networkCapacityHistory.record(0, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
         #Initialize recording of network quality changes
-        self.networkQualityHistory = TimeDataRecorder(serviceArea.id, 1, ["Latency"])
+        self.networkQualityHistory = TimeDataRecorder(serviceArea.id, ["Latency"])
         self.networkQualityHistory.createFileOutput(folderPath, "QualityHistory")
         self.networkQualityHistory.record(0, [self.latency])
         #Initialize slice activation history
-        self.sliceActivationHistory = TimeDataRecorder(serviceArea.id, 2, ["CompanyID", "ActivationType"])
+        self.sliceActivationHistory = TimeDataRecorder(serviceArea.id, ["CompanyID", "ActivationType"])
         self.sliceActivationHistory.createFileOutput(folderPath, "SliceActivationHistory")
         #Network Slices with, whose service requirements were violated in the last activity update
         self.activeSliceViolations = dict()
@@ -59,11 +59,11 @@ class LocalServiceNetwork(object):
 
         #Baseline QoS Validation
         violations : dict[NetworkSlice, list[tuple[ServiceRequirement, ViolationStatusType]]]
-        violations = self.sliceManager.FindQoSViolations(self.serviceArea, self.latency, capacityDemand)
+        violations, adjustedDemand = self.sliceManager.FindQoSViolations(self.serviceArea, self.latency, capacityDemand)
         self.UpdateRecoveredQoSRequirements(currentTime, violations)
         self.UpdateViolatedQoSRequirements(currentTime, violations)
         self.activeSliceViolations = violations
-        
+        self.MaxDataRatePerUser = (self.totalTrafficCapacity - adjustedDemand.private) / max(1,self.basicUsers)
         self.networkCapacityHistory.record(currentTime, [self.totalTrafficCapacity, self.MaxDataRatePerUser])
         self.lastUpdateTime = currentTime
         #latencyViolations = self.FindAndValidateLatencyRequirements()

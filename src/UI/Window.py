@@ -1,5 +1,5 @@
 import pygame
-from Configuration.globals import *
+from Configuration.globals import GetConfig
 from Simulation.WorldGenerator import *
 
 
@@ -8,12 +8,15 @@ class Window(object):
     def __init__(self) -> None:
         pygame.init()
         pygame.font.init()
-        self.window_size = CONFIG.uiSettings.WINDOW_SIZE
+        self.window_size = GetConfig().uiSettings.WINDOW_SIZE
         self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
         self.font = pygame.font.SysFont('Comic Sans MS', 14)
         worldGenerator = WorldGenerator()
         self.world = worldGenerator.get_world()
         self.animate()
+        
+    def GetSimulationTime(self):
+        return self.world.GetSimulationTime()
         
     def animate(self):
         # Run until the user asks to quit

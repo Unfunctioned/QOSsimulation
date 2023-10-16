@@ -1,4 +1,4 @@
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from Simulation.PhysicalEnvironment.AreaType import AreaType
 from UI.ColorCode import *
 '''Class to configure the color of UI elements'''
@@ -6,7 +6,7 @@ class Colors(object):
     
     def GetRandomColorCode():
         colors = list(ColorCode)
-        return CONFIG.randoms.colorGeneration.choice(colors)
+        return GetConfig().randoms.colorGeneration.choice(colors)
     
     def GetColor(colorCode):
         match colorCode:

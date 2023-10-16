@@ -1,6 +1,6 @@
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Simulation.BusinessEnvironment.BusinessProcess import BusinessProcess
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
@@ -10,17 +10,17 @@ class Company(object):
     
     def __init__(self, id, location, businessProcessFlow : list[ActivityType],
                  activityExecutionHistory : TimeDataRecorder) -> None:
-        path = CONFIG.filePaths.companyPath
-        self.folderPath = CONFIG.filePaths.createInstanceOutputFolder(path, "Company", id)
+        path = GetConfig().filePaths.companyPath
+        self.folderPath = GetConfig().filePaths.createInstanceOutputFolder(path, "Company", id)
         self.id = id
         self.location = location
         self.businessProcessFlow = businessProcessFlow
         self.networkSlice = NetworkSlice(self.id, self.folderPath)
         self.businessProcessActivations = 0
-        self.businessActivityHistory = TimeDataRecorder(self.id, 2, ["PROCESS_ID", "EVENTTYPE"])
+        self.businessActivityHistory = TimeDataRecorder(self.id, ["PROCESS_ID", "EVENTTYPE"])
         self.businessActivityHistory.createFileOutput(self.folderPath, "ActivityHistory")
         self.activityExecutionHistory = activityExecutionHistory
-        companyInfo = BasicDataRecorder(self.id, 2, ["ID", "LOCATION_ID"])
+        companyInfo = BasicDataRecorder(self.id, ["ID", "LOCATION_ID"])
         companyInfo.createFileOutput(self.folderPath, "CompanyInfo")
         companyInfo.record((self.id, self.location.id))
         companyInfo.terminate()
@@ -32,5 +32,10 @@ class Company(object):
         self.businessProcessActivations += 1
         businessProcess.Execute(currentTime, self.networkSlice)
         return businessProcess
+    
+    def terminate(self):
+        self.businessActivityHistory.terminate()
+        self.activityExecutionHistory.terminate()
+        self.networkSlice.terminate()
         
         

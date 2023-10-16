@@ -1,6 +1,7 @@
 from Simulation.PhysicalEnvironment.AreaType import AreaType
+from Configuration.BaseConfig import BaseConfig
 '''Stores configurations for the simulation'''
-class SimConfig(object):
+class SimConfig(BaseConfig):
     
     def __init__(self) -> None:
         # Defines a NxN sized grid used to generate the voronoi diagram
@@ -8,7 +9,7 @@ class SimConfig(object):
         # Amount of weights used to define AreaTypes
         self.WEIGHTS = 500
         # Defines the max. duration of the simulation (soft bound) - used to stop event generation
-        self.MAX_TIME = 14400
+        self.MAX_TIME = 8000
         #Kilometers spanning the unit range 0.0 to 1.0 (the full map)
         self.SCALE = 100
         #user density rural per sq km
@@ -34,7 +35,7 @@ class SimConfig(object):
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         #Defines number of active companies in the simulation
-        self.COMPANIES = 1
+        self.COMPANIES = 1000
         #Defines the time factor (in seconds) to determine business activity durations
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         #Reliablity of public slices
@@ -42,6 +43,9 @@ class SimConfig(object):
         
         #Default latency for local service networks
         self.DEFAULT_LATENCY = 9.5
+        
+    def jsonable(self):
+        return self.__dict__
         
     def scale(self, value):
         return value * (self.SCALE ** 2)

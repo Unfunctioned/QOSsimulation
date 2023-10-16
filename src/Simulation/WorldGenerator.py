@@ -1,7 +1,7 @@
 from Utilities.RandomPointSpawner import *
 from Utilities.SiteSpawner import *
 from Utilities.VoronoiDiagram.Voronoi import *
-from Configuration.globals import *
+from Configuration.globals import GetConfig
 from Simulation.World import World
 import math
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
@@ -20,16 +20,17 @@ class WorldGenerator(object):
         self.pointSpawner = RandomPointSpawner()
         self.siteSpawner = SiteSpawner()
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
-        points = self.pointSpawner.SpawnPoints(CONFIG.simConfig.WEIGHTS)
+        points = self.pointSpawner.SpawnPoints(GetConfig().simConfig.WEIGHTS)
         self.matchPointsToCell(points)
         self.eventHandler = EventHandler()
-        self.activityHistory = TimeDataRecorder(-1, 2, ["PROCESS_ID", "STATUS"])
-        self.activityHistory.createFileOutput(CONFIG.filePaths.simulationPath, "WorldActivity")
+        self.activityHistory = TimeDataRecorder(-1, ["PROCESS_ID", "STATUS", "ACTIVITY_TYPE", "QOS_AVAILABILITY",
+                                                        "FAILURE_CAUSE", "CAPACITY_VIOLATION_TIME", "LATENCY_VIOLATION_TIME"])
+        self.activityHistory.createFileOutput(GetConfig().filePaths.simulationPath, "WorldActivity")
         self.serviceAreas = self.generateServiceAreas()
         BuisnessProcessFactory.SetBusinessProcessFlows()
         BuisnessProcessFactory.SetServiceAreas(self.serviceAreas)
         EventFactory.InitializeOutput()
-        EventFactory.InitializeLatencySpikeTimes(self.serviceAreas)
+        EventFactory.InitializeSpikeTimes(self.serviceAreas)
         self.world = World(self.eventHandler,
                            self.serviceAreas,
                            self.generateCompanies(),
@@ -53,12 +54,12 @@ class WorldGenerator(object):
         
     def generateCompanies(self):
         companies = []
-        for i in range(CONFIG.simConfig.COMPANIES):
-            serviceArea = CONFIG.randoms.companyLocationGeneration.choice(self.serviceAreas)
+        for i in range(GetConfig().simConfig.COMPANIES):
+            serviceArea = GetConfig().randoms.companyLocationGeneration.choice(self.serviceAreas)
             businessProcessFlow = BuisnessProcessFactory.SelectBusinessProcessFlow()
             company = Company(i, serviceArea, businessProcessFlow, self.activityHistory)
-            delayRange = CONFIG.eventConfig.businessProcessActivationDelayRange
-            eventTime = CONFIG.randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
+            delayRange = GetConfig().eventConfig.businessProcessActivationDelayRange
+            eventTime = GetConfig().randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
             activationEvent = EventFactory.generateBusinessProcessActivationEvent(eventTime, company)
             companies.append(company)
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
@@ -66,7 +67,7 @@ class WorldGenerator(object):
     
     def generateProcess(self, companyLocation, customerLocation):
         activities = []
-        expectedDuration = CONFIG.simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * CONFIG.randoms.workDurationSimulation.randint(1,6)
+        expectedDuration = GetConfig().simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * GetConfig().randoms.workDurationSimulation.randint(1,6)
         activities.append(AreaBasedActivity(expectedDuration, companyLocation))
         activities.append(AreaBasedActivity(expectedDuration, companyLocation))
         activities.append(AreaBasedActivity(expectedDuration, companyLocation))
@@ -77,8 +78,8 @@ class WorldGenerator(object):
         areaDefinitions = []
         areasByWeight = sorted(cells, key=lambda cell: cell.weight)
         areaCount = len(areasByWeight)
-        amountRural = max(1, math.floor(areaCount * CONFIG.simConfig.SHARE_RURAL))
-        amountDense = max(1, math.floor(areaCount * CONFIG.simConfig.SHARE_DENSE))
+        amountRural = max(1, math.floor(areaCount * GetConfig().simConfig.SHARE_RURAL))
+        amountDense = max(1, math.floor(areaCount * GetConfig().simConfig.SHARE_DENSE))
         for i in range(areaCount):
             area = areasByWeight[i]
             if i < amountRural:

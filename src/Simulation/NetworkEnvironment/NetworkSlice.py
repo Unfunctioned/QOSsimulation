@@ -7,7 +7,7 @@ class NetworkSlice(object):
         self.companyId = companyId
         self.ServiceAreaRequirements = dict()
         self.activeServiceAreas = set()
-        self.violationHistory = TimeDataRecorder(companyId, 2, ["ServiceArea", "ViolationStatusType"])
+        self.violationHistory = TimeDataRecorder(companyId, ["ServiceArea", "ViolationStatusType"])
         self.violationHistory.createFileOutput(folderPath, "NetworkSlice")
         
     def addServiceRequirement(self, serviceArea, serviceRequirement):
@@ -34,3 +34,6 @@ class NetworkSlice(object):
     
     def UpdateViolationStatus(self, currentTime, serviceAreaID, violationType : ViolationStatusType):
         self.violationHistory.record(currentTime, [serviceAreaID, violationType.value[0]])
+        
+    def terminate(self):
+        self.violationHistory.terminate()

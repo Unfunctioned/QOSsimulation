@@ -1,14 +1,14 @@
 import random
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from Configuration.globals import *
 
 class SiteSpawner(object):
     
     def __init__(self) -> None:
-        self.gridsize = CONFIG.simConfig.GRIDSIZE
+        self.gridsize = GetConfig().simConfig.GRIDSIZE
     
     def SpawnPoints(self):
-        generator = CONFIG.randoms.siteGeneration
+        generator = GetConfig().randoms.siteGeneration
         cellsize = 1.0/self.gridsize
         points = []
         for i in range(0, self.gridsize):

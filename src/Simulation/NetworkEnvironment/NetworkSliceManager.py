@@ -104,6 +104,8 @@ class NetworkSliceManager(object):
     
     def FindQoSViolations(self, serviceArea, latency, capacityDemand : CapacityDemand):
         violations = {}
+        adjustedDemand = CapacityDemand(0, capacityDemand.publicMinimum, 
+                                        capacityDemand.publicMaximum, capacityDemand.maximumCapacity)
         excessDemand = max(0, capacityDemand.private + capacityDemand.publicMinimum - capacityDemand.maximumCapacity)
         activationHistory = self.activationKeys.queue.copy()
         activationHistory.reverse()
@@ -116,15 +118,20 @@ class NetworkSliceManager(object):
                 serviceRequirement : ServiceRequirement
                 for serviceRequirement in serviceRequirements:
                     if excessDemand > 0:
+                        violationType = ViolationStatusType.CAPACITY
+                        if excessDemand < serviceRequirement.defaultCapacityDemand:
+                            violationType = ViolationStatusType.PARTIAL_CAPACITY
+                            adjustedDemand.private += serviceRequirement.defaultCapacityDemand - excessDemand
                         excessDemand -= serviceRequirement.defaultCapacityDemand
-                        sliceViolations.append((serviceRequirement, ViolationStatusType.CAPACITY))
+                        sliceViolations.append((serviceRequirement, violationType))
                         continue
                     if serviceRequirement.latency is None:
                         continue
                     if serviceRequirement.latency < latency:
                         sliceViolations.append((serviceRequirement, ViolationStatusType.LATENCY))
+                        adjustedDemand.private += serviceRequirement.defaultCapacityDemand
                 if(len(sliceViolations) > 0):
                     violations[networkSlice] = sliceViolations
-        return violations
+        return violations, adjustedDemand
                 
             

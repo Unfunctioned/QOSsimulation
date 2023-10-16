@@ -1,15 +1,12 @@
-from Configuration.globals import CONFIG
 import os
 from DataOutput.BaseRecorder import BaseRecorder
 '''Used to record simulation data'''
 class BasicDataRecorder(BaseRecorder):
     
-    def __init__(self, id, size, headers) -> None:
+    def __init__(self, id, headers) -> None:
         self.id = id
         self.data = []
-        self.size = size
-        if(not len(headers) == size):
-            raise ValueError("Invalid header count")
+        self.size = len(headers)
         self.headers = headers
         self.filePath = None
         self.file = None

@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
+from Configuration.BaseConfig import BaseConfig
 '''Configures file paths for data outputs'''
-class FilePath(object):
+class FilePath(BaseConfig):
     
     def __init__(self) -> None:
         self.currentDirectory = os.getcwd()
@@ -9,15 +10,22 @@ class FilePath(object):
         self.storagePath = os.path.join(self.currentDirectory, "Simulations")
         print(self.currentDirectory)
         if(not os.path.exists(self.storagePath)):
-            os.mkdir(os.path.join(self.storagePath))
+            os.mkdir(self.storagePath)
         self.simulationPath = os.path.join(self.storagePath, "Run-" + self.dateTime)
-        os.mkdir(self.simulationPath)
+        if(not os.path.exists(self.simulationPath)):
+            os.mkdir(self.simulationPath)
         self.serviceAreaPath = os.path.join(self.simulationPath, "ServiceAreas")
-        os.mkdir(self.serviceAreaPath)
+        if(not os.path.exists(self.serviceAreaPath)):
+            os.mkdir(self.serviceAreaPath)
         self.localServiceNetworkPath = os.path.join(self.simulationPath, "LocalServiceNetworks")
-        os.mkdir(self.localServiceNetworkPath)
+        if(not os.path.exists(self.localServiceNetworkPath)):
+            os.mkdir(self.localServiceNetworkPath)
         self.companyPath = os.path.join(self.simulationPath, "Companies")
-        os.mkdir(self.companyPath)
+        if(not os.path.exists(self.companyPath)):
+            os.mkdir(self.companyPath)
+        
+    def jsonable(self):
+        return self.__dict__
         
     def createInstanceOutputFolder(self, path, folderName, id):
         folderPath = os.path.join(path, folderName + "#" + str(id))

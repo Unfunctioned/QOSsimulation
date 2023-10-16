@@ -1,6 +1,6 @@
 import random
 from UI.UIPoint import UIPoint
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 class RandomPointSpawner(object):
     
     def __init__(self) -> None:
@@ -9,8 +9,8 @@ class RandomPointSpawner(object):
     def SpawnPoints(self, count):
         points = []
         for _ in range(0,count):
-            x = CONFIG.randoms.pointGeneration.random()
-            y = CONFIG.randoms.pointGeneration.random()
+            x = GetConfig().randoms.pointGeneration.random()
+            y = GetConfig().randoms.pointGeneration.random()
             points.append(UIPoint((x,y)))
         return points
         

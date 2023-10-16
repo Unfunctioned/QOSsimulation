@@ -1,4 +1,3 @@
-from Configuration.globals import CONFIG
 from Simulation.BusinessEnvironment.BusinessActivity import AreaBasedActivity, PathBasedActivity, TrajectoryBasedActivity, BusinessActivity
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
@@ -18,7 +17,7 @@ class BusinessProcess(object):
         self.activities = activities
         self.activeActivityIndex = None
         self.activityHistory = activityHistory
-        businessRecorder = BasicDataRecorder(self.id, 5, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
+        businessRecorder = BasicDataRecorder(self.id, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
         businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
         self._recordProcessDefinition(businessRecorder)
         businessRecorder.terminate()

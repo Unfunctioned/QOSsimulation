@@ -1,4 +1,4 @@
-from Configuration.globals import CONFIG
+from Configuration.globals import GetConfig
 from UI.Colors import Colors
 import math
 from DataOutput.TimeDataRecorder import TimeDataRecorder
@@ -15,27 +15,27 @@ class ServiceArea(object):
         self.areaType = areaType
         self.cell = cell
         cell.colorcode = Colors.GetColorCodeByAreaType(self.areaType)
-        self.areaSize = CONFIG.simConfig.scale(self.cell.area)
-        self.userDensity = CONFIG.simConfig.get_user_density(self.areaType)
+        self.areaSize = GetConfig().simConfig.scale(self.cell.area)
+        self.userDensity = GetConfig().simConfig.get_user_density(self.areaType)
         self.totalUsers = math.floor(self.userDensity * self.areaSize)
-        self.default_activity = CONFIG.simConfig.get_default_activity(self.areaType)
+        self.default_activity = GetConfig().simConfig.get_default_activity(self.areaType)
         self.activity = self.default_activity
-        self.activityHistory = TimeDataRecorder(self.id, 1, ["ACTIVITY"])
-        self.activityHistory.createFileOutput(CONFIG.filePaths.serviceAreaPath, "ServiceArea")
+        self.activityHistory = TimeDataRecorder(self.id, ["ACTIVITY"])
+        self.activityHistory.createFileOutput(GetConfig().filePaths.serviceAreaPath, "ServiceArea")
         self.localServiceNetwork = None
     
     def InitializeNetwork(self, currentTime):
         localNetworkFolderPath = LocalServiceNetwork.InitializeOutputFolder(self.id)
-        trafficCapacity = self.areaSize * CONFIG.simConfig.get_traffic_capacity(self.areaType)
-        userDemands = (5, CONFIG.simConfig.BASIC_DATA_RATE_DEMAND)
-        serviceRequirement = DynamicServiceRequirement(userDemands, None, 0, CONFIG.simConfig.PUBLIC_SLICE_RELIABILITY, 0)
+        trafficCapacity = self.areaSize * GetConfig().simConfig.get_traffic_capacity(self.areaType)
+        userDemands = (5, GetConfig().simConfig.BASIC_DATA_RATE_DEMAND)
+        serviceRequirement = DynamicServiceRequirement(userDemands, None, 0, GetConfig().simConfig.PUBLIC_SLICE_RELIABILITY, 0)
         publicSlice = PublicSlice(localNetworkFolderPath)
         
         self.localServiceNetwork = LocalServiceNetwork(self, localNetworkFolderPath, trafficCapacity, publicSlice)
         self.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
-        self.ChangeActivity(currentTime, 1.0, 1.0)
+        self.ChangeActivity(currentTime, 1.0, 0)
     
-    def ChangeActivity(self, currentTime, modifier, activityBoost):
+    def ChangeActivity(self, currentTime, modifier, activityBoost = 0):
         self.activity = min(self.default_activity * modifier + activityBoost, 1.0)
         self.activityHistory.record(currentTime, [self.activity])
         activeUsers = math.floor(self.activity * self.totalUsers)

@@ -154,3 +154,5 @@ cython_debug/
 #Other files
 Simulations
 .VSCodeCounter
+Analysis
+Plots
