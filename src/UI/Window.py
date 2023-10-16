@@ -67,5 +67,5 @@ class Window(object):
         # Flip the display
         pygame.transform.flip(self.screen, flip_x=False, flip_y=True)
         Path().absolute()
-        pygame.image.save(self.screen, "World#{no}.jpeg".format(no = id))
+        pygame.image.save(self.screen, GetConfig().filePaths.simulationPath.joinpath("World#{no}.jpeg".format(no = id)))
         self.screen = None
