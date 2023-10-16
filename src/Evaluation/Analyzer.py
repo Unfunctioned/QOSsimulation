@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from Configuration.globals import GetConfig
 import pandas
 from Evaluation.DataStorer import DataStorer, DataType
@@ -21,10 +21,10 @@ class Analyzer(BaseAnalyzer):
         self.networkAnalyzer = NetworkAnalyzer(self.dataPath, self.totalTime)
         self.failureAnalyzer = FailureAnalyzer(self.storage)
         self.extractData()
-        self.outputPath = os.path.join(GetConfig().filePaths.simulationPath, "Results.txt")
+        self.outputPath = Path.joinpath(GetConfig().filePaths.simulationPath, "Results.txt")
         
     def collectSimulationData(self):
-        file = open(os.path.join(self.dataPath, "WorldActivity#-1.txt"), 'r')
+        file = Path.joinpath(self.dataPath, "WorldActivity#-1.txt").open('r')
         return pandas.read_csv(file, delimiter=" ")
     
     def extractData(self):
@@ -43,7 +43,7 @@ class Analyzer(BaseAnalyzer):
         self.failureAnalyzer.printResults()
         
     def writeData(self):
-        with open(self.outputPath, 'w') as resultsFile:
+        with self.outputPath.open('w') as resultsFile:
             resultsFile.writelines(self.qualityAnalyzer.getResults())
         
         

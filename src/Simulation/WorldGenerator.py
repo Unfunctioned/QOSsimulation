@@ -16,7 +16,8 @@ from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProces
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):
     
-    def __init__(self) -> None:
+    def __init__(self, showOutput = False) -> None:
+        self.showOutput = showOutput
         self.pointSpawner = RandomPointSpawner()
         self.siteSpawner = SiteSpawner()
         self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
@@ -35,7 +36,8 @@ class WorldGenerator(object):
                            self.serviceAreas,
                            self.generateCompanies(),
                            self.activityHistory)
-        self.world.printInfo()
+        if self.showOutput:
+            self.world.printInfo()
         
     def generateServiceAreas(self):
         serviceAreas = []
@@ -49,7 +51,8 @@ class WorldGenerator(object):
             self.generateActivityUpdateEvent(serviceArea)
             self.generateLatencyUpdateEvent(serviceArea)
             index += 1
-        print("Events in Queue: {count}".format(count = self.eventHandler.getEventCount()))
+        if self.showOutput:
+            print("Events in Queue: {count}".format(count = self.eventHandler.getEventCount()))
         return serviceAreas
         
     def generateCompanies(self):
@@ -101,7 +104,8 @@ class WorldGenerator(object):
         
     def matchPointsToCell(self, points):
         for point in points:
-            print(point.position)
+            if self.showOutput:
+                print(point.position)
             for cell in self.voronoi.cells:
                 if(cell.isPointinCell(point.position)):
                     point.color = Colors.GetColor(cell.colorcode)

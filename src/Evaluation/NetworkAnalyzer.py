@@ -1,7 +1,7 @@
-import os
+from pathlib import Path
 from Configuration.globals import GetConfig
 import pandas
-from pandas import DataFrame
+from pandas import DataFrame, Series
 from Evaluation.BaseAnalyzer import BaseAnalyzer
 from dataclasses import dataclass
 
@@ -12,7 +12,7 @@ class QualityRangeItem:
 '''Used to analyze the network performance of the local service networks'''
 class NetworkAnalyzer(BaseAnalyzer):
     
-    def __init__(self, dataPath, totalTime) -> None:
+    def __init__(self, dataPath : Path, totalTime) -> None:
         self.totalTime = totalTime
         self.dataPath = dataPath
         self.networkData : dict[str, DataFrame]
@@ -22,31 +22,23 @@ class NetworkAnalyzer(BaseAnalyzer):
         
     def extractData(self):
         data = dict()
-        networkPath = os.path.join(self.dataPath, "LocalServiceNetworks")
-        for directory in os.listdir(networkPath):
-            index = directory.split('#')[1]
-            filePath = os.path.join(networkPath, directory, 'QualityHistory#' + index + '.txt')
+        networkPath = self.dataPath.joinpath("LocalServiceNetworks")
+        for directory in networkPath.glob('*'):
+            index = directory.name.split('#')[1]
+            filePath = networkPath.joinpath(directory, 'QualityHistory#' + index + '.txt')
             csv = open(filePath, 'r')
             data[index] = pandas.read_csv(csv, delimiter=" ")
         return data
     
     def analyze(self):
         qualityMap = dict()
-        qualityRange = (2.0, -1.0)
         for key in self.networkData:
             totalViolationTime = 0
             data = self.networkData[key]
-            for i in range(len(data)):
-                currentRow = data.iloc[i]
-                duration = 0
-                if currentRow['Latency'] > GetConfig().serviceConfig.LATENCY_DEFAULT:
-                    if not i < len(data) - 1:
-                        duration = self.totalTime - currentRow['TIME']
-                    else:
-                        nextRow = data.iloc[i + 1]
-                        duration = nextRow['TIME'] - currentRow['TIME']
-                    totalViolationTime += duration
-                    
+            rowCount = len(data)
+            altData = data.loc[data['Latency'] > GetConfig().serviceConfig.LATENCY_DEFAULT]
+            violationTimeData = altData.apply(lambda x : self.Duration(rowCount, x, data), axis=1)
+            totalViolationTime = violationTimeData.sum()       
             qualityValue = (self.totalTime - totalViolationTime) / self.totalTime
             qualityMap[key] = qualityValue
             if qualityValue < self.qualityRange.min:
@@ -54,6 +46,19 @@ class NetworkAnalyzer(BaseAnalyzer):
             if qualityValue > self.qualityRange.max:
                 self.qualityRange.max = qualityValue 
         self.results = pandas.DataFrame.from_dict(qualityMap, orient='index')
+        
+    def Duration(self, rowCount : int, currentRow : Series, data : DataFrame) -> int:
+        data.reset_index()
+        duration = 0
+        currentTime = currentRow['TIME']
+        if not currentRow.name < rowCount - 1:
+            duration = self.totalTime - currentTime
+        else:
+            nextIndex = currentRow.name + 1
+            nextRow = data.loc[nextIndex]
+            nextTime = nextRow['TIME']
+            duration = nextTime - currentTime
+        return duration
         
     def printResults(self):
         print("Network quality range: " + str(self.qualityRange.min) + " - " + str(self.qualityRange.max))

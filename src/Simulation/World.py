@@ -8,7 +8,7 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 class World(object):
     
     def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies,
-                 activityHistory : TimeDataRecorder) -> None:
+        activityHistory : TimeDataRecorder) -> None:
         self.delayConfig = GetConfig().eventConfig.activityEventDelayRange
         self.eventHandler = eventHandler
         self.serviceAreas = serviceAreas
@@ -17,9 +17,10 @@ class World(object):
         self.activityHistory = activityHistory
         self.totalTime = None
         
-    def isRunning(self):
+    def isRunning(self, showOutput = False):
         if (self.eventHandler.currentTime > 0 and self.eventHandler.isEmpty()):
-            print("Terminating")
+            if showOutput:
+                print("Terminating")
             return False
         return True
     
@@ -29,11 +30,11 @@ class World(object):
             totalArea += serviceArea.cell.area
         print("Total area: {area}".format(area = totalArea))
         
-    def Update(self):
+    def Update(self, showOutput : bool):
         if(not self.eventHandler.advanceTime()):
             raise AttributeError("Advancing Time failed")
-            return
-        print(self.eventHandler.currentTime)
+        if showOutput:
+            print(self.eventHandler.currentTime)
         getNext = True
         while getNext:
             entry = self.eventHandler.getNextEvent()

@@ -3,11 +3,11 @@ from Evaluation.Analyzer import Analyzer
 import json
 from Configuration.globals import GetConfig
 from Configuration.ConfigurationEncoder import ConfigurationEncoder
-import os
+from pathlib import Path
 
 def main():
     jsonConfig = json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4)
-    with open(os.path.join(GetConfig().filePaths.simulationPath, "Configuration.json"), 'w') as configFile:
+    with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
         configFile.write(jsonConfig)
     window = Window()
     print(GetConfig().filePaths.simulationPath)

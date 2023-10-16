@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from DataOutput.BaseRecorder import BaseRecorder
 '''Used to record simulation data'''
 class TimeDataRecorder(BaseRecorder):
@@ -12,8 +12,8 @@ class TimeDataRecorder(BaseRecorder):
         self.file = None
         
     def createFileOutput(self, path, baseFileName):
-        self.filePath = os.path.join(path, baseFileName + "#" + str(self.id) + ".txt")
-        self.file = open(self.filePath, "a")
+        self.filePath = Path.joinpath(path, baseFileName + "#" + str(self.id) + ".txt")
+        self.file = self.filePath.open("a")
         self.file.write("{time} {valueNames}\n".format(time = "TIME", valueNames=self._namesToString()))
         
     def record(self, time, values):
