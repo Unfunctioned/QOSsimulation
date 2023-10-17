@@ -1,5 +1,6 @@
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
+from Configuration.globals import GetConfig
 '''Defines the class representing network slices in the simulation'''
 class NetworkSlice(object):
     
@@ -7,8 +8,14 @@ class NetworkSlice(object):
         self.companyId = companyId
         self.ServiceAreaRequirements = dict()
         self.activeServiceAreas = set()
-        self.violationHistory = TimeDataRecorder(companyId, ["ServiceArea", "ViolationStatusType"])
-        self.violationHistory.createFileOutput(folderPath, "NetworkSlice")
+        self.violationHistory = self._initializeViolationHistory(folderPath)
+            
+    def _initializeViolationHistory(self, folderPath):
+        if GetConfig().appSettings.tracingEnabled:
+            violationHistory = TimeDataRecorder(self.companyId, ["ServiceArea", "ViolationStatusType"])
+            violationHistory.createFileOutput(folderPath, "NetworkSlice")
+            return violationHistory
+        return None
         
     def addServiceRequirement(self, serviceArea, serviceRequirement):
         if not serviceArea in self.ServiceAreaRequirements:
@@ -33,7 +40,8 @@ class NetworkSlice(object):
         raise KeyError("No requirements for given service area exist")
     
     def UpdateViolationStatus(self, currentTime, serviceAreaID, violationType : ViolationStatusType):
-        self.violationHistory.record(currentTime, [serviceAreaID, violationType.value[0]])
+        if not self.violationHistory is None:
+            self.violationHistory.record(currentTime, [serviceAreaID, violationType.value[0]])
         
     def terminate(self):
         self.violationHistory.terminate()

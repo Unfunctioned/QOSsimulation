@@ -134,17 +134,20 @@ class LocalServiceNetwork(object):
         return CapacityDemand(privateDemand, minDemand, maxDemand, self.totalTrafficCapacity)
         
     def RegisterCapacityViolations(self, currentTime, violations):
+        networkSlice : NetworkSlice
         for networkSlice in violations:
             print("Capacity QoS Violation! {id}".format(id = networkSlice.companyId))
-            networkSlice.AddViolation(currentTime, self.serviceArea.id, ViolationStatusType.CAPACITY)
+            networkSlice.UpdateViolationStatus(currentTime, self.serviceArea.id, ViolationStatusType.CAPACITY)
     
     def RegisterLatencyViolations(self, currentTime, violations):
+        networkSlice : NetworkSlice
         for networkSlice in violations:
             print("Latency QOS Violation {id}".format(id = networkSlice.companyId))
-            networkSlice.AddViolation(currentTime, self.serviceArea.id, ViolationStatusType.LATENCY)
+            networkSlice.UpdateViolationStatus(currentTime, self.serviceArea.id, ViolationStatusType.LATENCY)
         
     def UpdateAccumulatedViolationTime(self, currentTime, violations : dict[NetworkSlice, ServiceRequirement]):
         serviceRecoveries = []
+        networkSlice : NetworkSlice
         for networkSlice in self.currentCapacityViolations:
             serviceRecovery = True
             if networkSlice in violations.keys():
@@ -154,7 +157,7 @@ class LocalServiceNetwork(object):
                 requirement : ServiceRequirement
                 for requirement in serviceRequirements:
                     if (requirement in violatedRequirements and not requirement.lastUpdateTime == currentTime):
-                        requirement.accumulatedViolationTime += currentTime - self.lastUpdateTime
+                        requirement.totalViolationTime += currentTime - self.lastUpdateTime
                         requirement.lastUpdateTime = currentTime
                         serviceRecovery = False
             if serviceRecovery:

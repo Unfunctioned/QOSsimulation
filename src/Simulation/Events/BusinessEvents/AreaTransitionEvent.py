@@ -25,7 +25,8 @@ class AreaTransitionEvent(BusinessEvent):
             networkSlice = self.company.networkSlice
             path[currentPosition + 1].ActivateNetworkSlice(self.t, networkSlice, serviceRequirement)
             path[currentPosition].DeactivateNetworkSlice(self.t, networkSlice, serviceRequirement)
-            self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.AREA_TRANSITION])
+            if not self.businessProcess.activityHistory is None:
+                self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.AREA_TRANSITION])
             self.currentActivity.currentPosition += 1
             if self.currentActivity.currentPosition == len(path) - 1:
                 self.completed = True

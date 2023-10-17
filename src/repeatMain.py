@@ -16,9 +16,8 @@ LATENCY_NAME = Path.joinpath(ANALYSIS_PATH, "LatencyResults-" + datetime.now().s
 LATENCY_RECORDER = BasicDataRecorder(0, ["RUN_NO", "MIN_LATENCY_SPIKE_DURATION", "MAX_LATENCY_SPIKE_DURATION",
                                     "SUCCESS_RATE", "MIN_NETWORK_QUALITY", "MAX_NETWORK_QUALITY"])
 FAILURE_NAME = Path.joinpath(ANALYSIS_PATH, "FailureResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
-FAILURE_RECORDER = BasicDataRecorder(0, ["RUN_NO", "AREA_FAILS", "PATH_FAILS", "TRAJECTORY_FAILS", "TOTAL_FAILS"])
-
-RECORDERS = dict()
+FAILURE_RECORDER = BasicDataRecorder(0, ["RUN_NO", "AREA_FAILS", "PATH_FAILS", "TRAJECTORY_FAILS", 
+                                         "TOTAL_FAILS", "CAPACITY_FAILS", "LATENCY_FAILS"])
 
 def setup():
     if(not Path.exists(ANALYSIS_PATH)):
@@ -48,10 +47,13 @@ def main():
         FAILURE_RECORDER.record([i, analyzer.failureAnalyzer.acitivityFailureCount.area,
                                  analyzer.failureAnalyzer.acitivityFailureCount.path,
                                  analyzer.failureAnalyzer.acitivityFailureCount.trajectory,
-                                 analyzer.failureAnalyzer.acitivityFailureCount.total])
+                                 analyzer.failureAnalyzer.acitivityFailureCount.total,
+                                 analyzer.failureAnalyzer.failureCount.capacity,
+                                 analyzer.failureAnalyzer.failureCount.latency])
         window.getImage(i)
         print("Executed simulation #" + str(i) + ": " + str(time.time()-startTime) + "s")
     LATENCY_RECORDER.terminate()
+    FAILURE_RECORDER.terminate()
     
 
 if __name__ == "__main__":

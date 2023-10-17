@@ -9,7 +9,7 @@ def main():
     jsonConfig = json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4)
     with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
         configFile.write(jsonConfig)
-    window = Window()
+    window = Window(True)
     print(GetConfig().filePaths.simulationPath)
     analyzer = Analyzer(GetConfig().filePaths.simulationPath, window.GetSimulationTime())
     analyzer.analyze()

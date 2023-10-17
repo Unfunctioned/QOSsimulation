@@ -10,20 +10,24 @@ class Company(object):
     
     def __init__(self, id, location, businessProcessFlow : list[ActivityType],
                  activityExecutionHistory : TimeDataRecorder) -> None:
-        path = GetConfig().filePaths.companyPath
-        self.folderPath = GetConfig().filePaths.createInstanceOutputFolder(path, "Company", id)
+        self.folderPath = None
         self.id = id
         self.location = location
         self.businessProcessFlow = businessProcessFlow
         self.networkSlice = NetworkSlice(self.id, self.folderPath)
         self.businessProcessActivations = 0
-        self.businessActivityHistory = TimeDataRecorder(self.id, ["PROCESS_ID", "EVENTTYPE"])
-        self.businessActivityHistory.createFileOutput(self.folderPath, "ActivityHistory")
         self.activityExecutionHistory = activityExecutionHistory
-        companyInfo = BasicDataRecorder(self.id, ["ID", "LOCATION_ID"])
-        companyInfo.createFileOutput(self.folderPath, "CompanyInfo")
-        companyInfo.record((self.id, self.location.id))
-        companyInfo.terminate()
+        self.businessActivityHistory = self._initializeBusinessActivityHistory()
+        self.storeInfo()
+        
+    def _initializeBusinessActivityHistory(self):
+        if GetConfig().appSettings.tracingEnabled:
+            path = GetConfig().filePaths.companyPath
+            self.folderPath = GetConfig().filePaths.createInstanceOutputFolder(path, "Company", id)
+            history = TimeDataRecorder(self.id, ["PROCESS_ID", "EVENTTYPE"])
+            history.createFileOutput(self.folderPath, "ActivityHistory")
+            return history
+        return None
         
     def ActivateBusinessProcess(self, currentTime):
         processId = str(self.id) + "-{activations}".format(activations = self.businessProcessActivations)
@@ -32,6 +36,13 @@ class Company(object):
         self.businessProcessActivations += 1
         businessProcess.Execute(currentTime, self.networkSlice)
         return businessProcess
+    
+    def storeInfo(self):
+        if GetConfig().appSettings.tracingEnabled:
+            companyInfo = BasicDataRecorder(self.id, ["ID", "LOCATION_ID"])
+            companyInfo.createFileOutput(self.folderPath, "CompanyInfo")
+            companyInfo.record((self.id, self.location.id))
+            companyInfo.terminate()
     
     def terminate(self):
         self.businessActivityHistory.terminate()

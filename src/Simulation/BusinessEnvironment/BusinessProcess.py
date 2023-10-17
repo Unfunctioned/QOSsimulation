@@ -4,6 +4,7 @@ from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.BusinessEnvironment.BusinessActivity import BusinessActivity
+from Configuration.globals import GetConfig
 '''Models the business process of a company'''
 class BusinessProcess(object):
     
@@ -17,10 +18,14 @@ class BusinessProcess(object):
         self.activities = activities
         self.activeActivityIndex = None
         self.activityHistory = activityHistory
-        businessRecorder = BasicDataRecorder(self.id, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
-        businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
-        self._recordProcessDefinition(businessRecorder)
-        businessRecorder.terminate()
+        self.storeInfo(folderPath)
+        
+    def storeInfo(self, folderPath):
+        if GetConfig().appSettings.tracingEnabled:
+            businessRecorder = BasicDataRecorder(self.id, ["INDEX", "TYPE", "DURATION", "REQ.CAPACITY", "REQ.LATENCY"])
+            businessRecorder.createFileOutput(folderPath, "ProcessDefinition")
+            self._recordProcessDefinition(businessRecorder)
+            businessRecorder.terminate()
     
     def Execute(self, currentTime, networkSlice : NetworkSlice):
         self.activeActivityIndex = 0

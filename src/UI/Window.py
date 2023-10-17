@@ -8,7 +8,7 @@ class Window(object):
     
     def __init__(self, showOutput = False) -> None:
         self.showPutput = showOutput
-        self.window_size = GetConfig().uiSettings.WINDOW_SIZE
+        self.window_size = GetConfig().appSettings.WINDOW_SIZE
         self.screen = None
         self.font = None
         if showOutput:

@@ -1,5 +1,5 @@
 from Configuration.Randoms import Randoms
-from Configuration.UISettings import UISettings
+from Configuration.AppSettings import AppSettings
 from Configuration.SimConfig import SimConfig
 from Configuration.EventConfig import EventConfig
 from Configuration.FilePath import FilePath
@@ -9,7 +9,7 @@ from Configuration.BaseConfig import BaseConfig
 class Config(BaseConfig):
     
     def __init__(self) -> None:
-        self.uiSettings = UISettings()
+        self.appSettings = AppSettings()
         self.randoms = Randoms()
         self.simConfig = SimConfig()
         self.eventConfig = EventConfig()

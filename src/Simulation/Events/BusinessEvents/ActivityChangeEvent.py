@@ -15,7 +15,8 @@ class ActivityChangeEvent(BusinessEvent):
             self.activatedActivity = self.businessProcess.ExecuteNext(self.t, self.company.networkSlice)
             if self.activatedActivity is None:
                 self.generateFollowUpEvent = False
-            self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.ACTIVITY_CHANGE.name])
+            if not self.businessProcess.activityHistory is None:
+                self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.ACTIVITY_CHANGE.name])
         except Exception as e:
             e.add_note("In event of type:{eventType}".format(eventType = type(self)))
             raise

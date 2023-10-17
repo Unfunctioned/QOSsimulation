@@ -12,4 +12,5 @@ class BusinessProcessActivationEvent(BusinessEvent):
         
     def trigger(self):
         self.businessProcess = self.company.ActivateBusinessProcess(self.t)
-        self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.PROCESS_ACTIVATION.name])
+        if not self.businessProcess.activityHistory is None:
+            self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.PROCESS_ACTIVATION.name])

@@ -1,6 +1,5 @@
 from Evaluation.Plotting.Plotter import Plotter
 from pathlib import Path
-from datetime import datetime
 
 def main():
     ANALYSIS_PATH = Path.joinpath(Path.cwd(), "Analysis")
