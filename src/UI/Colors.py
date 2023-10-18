@@ -4,10 +4,6 @@ from UI.ColorCode import *
 '''Class to configure the color of UI elements'''
 class Colors(object):
     
-    def GetRandomColorCode():
-        colors = list(ColorCode)
-        return GetConfig().randoms.colorGeneration.choice(colors)
-    
     def GetColor(colorCode):
         match colorCode:
             case ColorCode.RED:

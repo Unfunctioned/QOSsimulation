@@ -4,13 +4,18 @@ from Configuration.BaseConfig import BaseConfig
 '''Configures file paths for data outputs'''
 class FilePath(BaseConfig):
     
-    def __init__(self) -> None:
+    def __init__(self, worldId = 0, seedId = 0) -> None:
+        self.worldId = worldId
+        self.seedId = seedId
         self.currentDirectory = Path().cwd()
         self.dateTime = datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
         self.storagePath = Path.joinpath(self.currentDirectory, "Simulations")
         if not Path.exists(self.storagePath):
             Path.mkdir(self.storagePath)
-        self.simulationPath = Path.joinpath(self.storagePath, "Run-" + self.dateTime)
+        self.worldPath = self.storagePath.joinpath("World#" + str(worldId) + "#" + str(seedId))
+        if not Path.exists(self.worldPath):
+                Path.mkdir(self.worldPath)
+        self.simulationPath = Path.joinpath(self.worldPath, "Run-" + self.dateTime)
         if not Path.exists(self.simulationPath):
             Path.mkdir(self.simulationPath)
         self.serviceAreaPath = Path.joinpath(self.simulationPath, "ServiceAreas")
@@ -22,9 +27,15 @@ class FilePath(BaseConfig):
         self.companyPath = Path.joinpath(self.simulationPath, "Companies")
         if not Path.exists(self.companyPath):
             Path.mkdir(self.companyPath)
+        self.analysisPath = self.currentDirectory.joinpath('Analysis')
+        if not Path.exists(self.analysisPath):
+            Path.mkdir(self.analysisPath)
         self.plotPath = self.currentDirectory.joinpath('Plots')
         if not Path.exists(self.plotPath):
             Path.mkdir(self.plotPath)
+        self.aggregationPath = self.currentDirectory.joinpath('Aggregation')
+        if not Path.exists(self.aggregationPath):
+            Path.mkdir(self.aggregationPath)
         
     def jsonable(self):
         jsonDict = self.__dict__.copy()

@@ -8,14 +8,17 @@ from Configuration.ServiceConfig import ServiceConfig
 from Configuration.BaseConfig import BaseConfig
 class Config(BaseConfig):
     
-    def __init__(self) -> None:
+    def __init__(self, worldId = 0, seedId = 0) -> None:
         self.appSettings = AppSettings()
         self.randoms = Randoms()
         self.simConfig = SimConfig()
         self.eventConfig = EventConfig()
-        self.filePaths = FilePath()
+        self.filePaths = FilePath(worldId, seedId)
         self.mobilityConfig = MobilityConfig()
         self.serviceConfig = ServiceConfig()
+        
+    def setSeeds(self, seeds : list[int]):
+        self.randoms = Randoms(seeds)
         
     def jsonable(self):
         jsonDict = self.__dict__.copy()

@@ -11,9 +11,12 @@ class BasicDataRecorder(BaseRecorder):
         self.filePath = None
         self.file = None
         
-    def createFileOutput(self, path : Path, baseFileName):
+    def createFileOutput(self, path : Path, baseFileName, withOverride = False):
         self.filePath = path.joinpath(baseFileName + '#' + str(self.id) + '.txt')
-        self.file = self.filePath.open('a')
+        writeOption = 'a'
+        if withOverride:
+            writeOption = 'w'
+        self.file = self.filePath.open(writeOption)
         self.file.write("{valueNames}\n".format(valueNames=self._namesToString()))
         
     def record(self, values):

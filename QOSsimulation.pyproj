@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{03eb48fe-e648-40de-88a6-cbb97ffd320b}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>src\repeatMain.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|PythonCore|3.11</InterpreterId>
+    <TestFramework>unittest</TestFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src\aggregationMain.py" />
+    <Compile Include="src\analyzerMain.py" />
+    <Compile Include="src\Configuration\AppSettings.py" />
+    <Compile Include="src\Configuration\BaseConfig.py" />
+    <Compile Include="src\Configuration\Config.py" />
+    <Compile Include="src\Configuration\ConfigurationEncoder.py" />
+    <Compile Include="src\Configuration\EventConfig.py" />
+    <Compile Include="src\Configuration\FilePath.py" />
+    <Compile Include="src\Configuration\globals.py" />
+    <Compile Include="src\Configuration\MobilityConfig.py" />
+    <Compile Include="src\Configuration\Randoms.py" />
+    <Compile Include="src\Configuration\ServiceConfig.py" />
+    <Compile Include="src\Configuration\SimConfig.py" />
+    <Compile Include="src\DataOutput\BaseRecorder.py" />
+    <Compile Include="src\DataOutput\BasicDataRecorder.py" />
+    <Compile Include="src\DataOutput\MockTimeDataRecorder.py" />
+    <Compile Include="src\DataOutput\TimeDataRecorder.py" />
+    <Compile Include="src\Evaluation\Analyzer.py" />
+    <Compile Include="src\Evaluation\BaseAnalyzer.py" />
+    <Compile Include="src\Evaluation\DataAggregator.py" />
+    <Compile Include="src\Evaluation\DataStorer.py" />
+    <Compile Include="src\Evaluation\FailureAnalyzer.py" />
+    <Compile Include="src\Evaluation\NetworkAnalyzer.py" />
+    <Compile Include="src\Evaluation\Plotting\AggregationPlotter.py" />
+    <Compile Include="src\Evaluation\Plotting\FailurePlotter.py" />
+    <Compile Include="src\Evaluation\Plotting\LatencyPlotting.py" />
+    <Compile Include="src\Evaluation\Plotting\Plotter.py" />
+    <Compile Include="src\Evaluation\QualityAnalyzer.py" />
+    <Compile Include="src\Evaluation\SimulationValidator.py" />
+    <Compile Include="src\main.py" />
+    <Compile Include="src\plotMain.py" />
+    <Compile Include="src\repeatMain.py" />
+    <Compile Include="src\Simulation\BusinessEnvironment\ActivityType.py" />
+    <Compile Include="src\Simulation\BusinessEnvironment\BusinessActivity.py" />
+    <Compile Include="src\Simulation\BusinessEnvironment\BusinessProcess.py" />
+    <Compile Include="src\Simulation\BusinessEnvironment\BusinessProcessFactory.py" />
+    <Compile Include="src\Simulation\BusinessEnvironment\Company.py" />
+    <Compile Include="src\Simulation\Events\BusinessEvents\ActivityChangeEvent.py" />
+    <Compile Include="src\Simulation\Events\BusinessEvents\AreaTransitionEvent.py" />
+    <Compile Include="src\Simulation\Events\BusinessEvents\BusinessEvent.py" />
+    <Compile Include="src\Simulation\Events\BusinessEvents\BusinessEventType.py" />
+    <Compile Include="src\Simulation\Events\BusinessEvents\BusinessProcessActivationEvent.py" />
+    <Compile Include="src\Simulation\Events\Event.py" />
+    <Compile Include="src\Simulation\Events\EventFactory.py" />
+    <Compile Include="src\Simulation\Events\EventHandler.py" />
+    <Compile Include="src\Simulation\Events\LatencyEvent.py" />
+    <Compile Include="src\Simulation\Events\UserActivityEvent.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\ActivationType.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\CapacityDemand.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\LocalServiceNetwork.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\NetworkSlice.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\NetworkSliceManager.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\PublicSlice.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\ServiceRequirements\ServiceRequirement.py" />
+    <Compile Include="src\Simulation\NetworkEnvironment\ViolationStatusType.py" />
+    <Compile Include="src\Simulation\PhysicalEnvironment\AreaType.py" />
+    <Compile Include="src\Simulation\PhysicalEnvironment\ServiceArea.py" />
+    <Compile Include="src\Simulation\World.py" />
+    <Compile Include="src\Simulation\WorldGenerator.py" />
+    <Compile Include="src\SoftwareTests\QoSViolationTest.py" />
+    <Compile Include="src\SoftwareTests\ServiceRequirementTest.py" />
+    <Compile Include="src\testMain.py" />
+    <Compile Include="src\UI\ColorCode.py" />
+    <Compile Include="src\UI\Colors.py" />
+    <Compile Include="src\UI\UIPoint.py" />
+    <Compile Include="src\UI\Window.py" />
+    <Compile Include="src\Utilities\PathGenerator.py" />
+    <Compile Include="src\Utilities\RandomPointSpawner.py" />
+    <Compile Include="src\Utilities\SiteSpawner.py" />
+    <Compile Include="src\Utilities\VoronoiDiagram\Cell.py" />
+    <Compile Include="src\Utilities\VoronoiDiagram\Edge.py" />
+    <Compile Include="src\Utilities\VoronoiDiagram\Voronoi.py" />
+    <Compile Include="src\Utilities\VoronoiDiagram\VoronoiBuilder.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".VSCodeCounter\2023-10-04_22-57-16\diff.txt" />
+    <Content Include=".VSCodeCounter\2023-10-04_22-57-16\results.txt" />
+    <Content Include=".VSCodeCounter\2023-10-16_18-00-08\diff.txt" />
+    <Content Include=".VSCodeCounter\2023-10-16_18-00-08\results.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".VSCodeCounter\" />
+    <Folder Include=".VSCodeCounter\2023-10-04_22-57-16" />
+    <Folder Include=".VSCodeCounter\2023-10-16_18-00-08" />
+    <Folder Include="src" />
+    <Folder Include="src\Configuration" />
+    <Folder Include="src\DataOutput" />
+    <Folder Include="src\Evaluation" />
+    <Folder Include="src\Evaluation\Plotting" />
+    <Folder Include="src\Simulation" />
+    <Folder Include="src\Simulation\BusinessEnvironment" />
+    <Folder Include="src\Simulation\Events" />
+    <Folder Include="src\Simulation\Events\BusinessEvents" />
+    <Folder Include="src\Simulation\NetworkEnvironment" />
+    <Folder Include="src\Simulation\NetworkEnvironment\ServiceRequirements" />
+    <Folder Include="src\Simulation\PhysicalEnvironment" />
+    <Folder Include="src\SoftwareTests" />
+    <Folder Include="src\UI" />
+    <Folder Include="src\Utilities" />
+    <Folder Include="src\Utilities\VoronoiDiagram" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.11" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
