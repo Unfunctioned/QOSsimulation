@@ -3,10 +3,9 @@ from Evaluation.DataStorer import DataStorer, DataType
 class SimulationValidator(object):
     
     def __init__(self, dataStorage : DataStorer) -> None:
-        self.storage = dataStorage
+        self.activations = len(dataStorage.GetData(DataType.ACTIVATION).index)
+        self.terminations = len(dataStorage.GetData(DataType.TERMINATION).index)
         
     def validate(self):
-        activationCount = len(self.storage.GetData(DataType.ACTIVATION).index)
-        terminationCount = len(self.storage.GetData(DataType.TERMINATION).index)
-        if not activationCount == terminationCount:
+        if not self.activations == self.terminations:
             raise ValueError("Not all activities terminated")

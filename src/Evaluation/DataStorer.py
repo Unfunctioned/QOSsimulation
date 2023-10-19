@@ -11,9 +11,10 @@ class DataType(Enum):
 '''Used to store simulation data for evaluation'''
 class DataStorer(object):
     
-    def __init__(self) -> None:
+    def __init__(self, allData : DataFrame) -> None:
         self._dataStorage : dict[DataType, DataFrame]
         self._dataStorage = dict()
+        self._dataStorage[DataType.ALL] = allData
         
     def AddData(self, key : DataType, data : DataFrame):
         self._dataStorage[key] = data

@@ -4,8 +4,7 @@ from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Simulation.NetworkEnvironment.CapacityDemand import CapacityDemand
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
-from DataOutput.TimeDataRecorder import TimeDataRecorder
-import traceback
+
 '''Class used to manage the active network slices in a local service network'''
 class NetworkSliceManager(object):
     
@@ -40,7 +39,7 @@ class NetworkSliceManager(object):
             raise ValueError("Given Network slice could not be found")
         return self.sliceToKey[networkSlice]
     
-    def GetPrivateDemand(self, serviceArea):
+    def GetPrivateDemand(self, serviceAreaId):
         demand = 0
         for i in range(1, len(self.activationKeys.queue)):
             key = self.activationKeys.queue[i]
@@ -48,7 +47,7 @@ class NetworkSliceManager(object):
             for networkSlice in networkSlices:
                 if (isinstance(networkSlice, PublicSlice)):
                     continue
-                serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                serviceRequirements = networkSlice.GetServiceRequirement(serviceAreaId)
                 for serviceRequirement in serviceRequirements:
                     if(isinstance(serviceRequirement, DynamicServiceRequirement)):
                         raise ValueError("Invalid private slice")
@@ -56,8 +55,8 @@ class NetworkSliceManager(object):
                         demand += serviceRequirement.defaultCapacityDemand
         return demand
     
-    def GetPublicDemandRange(self, serviceArea, publicSlice):
-        serviceRequirements = list(publicSlice.GetServiceRequirement(serviceArea))
+    def GetPublicDemandRange(self, serviceAreaId, publicSlice):
+        serviceRequirements = list(publicSlice.GetServiceRequirement(serviceAreaId))
         if (not len(serviceRequirements) == 1):
             raise ValueError("Invalid public slice requirements")
         serviceRequirement = serviceRequirements[0]
@@ -102,7 +101,7 @@ class NetworkSliceManager(object):
                     violations[networkSlice] = sliceViolations
         return violations
     
-    def FindQoSViolations(self, serviceArea, latency, capacityDemand : CapacityDemand):
+    def FindQoSViolations(self, serviceAreaId : int, latency, capacityDemand : CapacityDemand):
         violations = {}
         adjustedDemand = CapacityDemand(0, capacityDemand.publicMinimum, 
                                         capacityDemand.publicMaximum, capacityDemand.maximumCapacity)
@@ -113,7 +112,7 @@ class NetworkSliceManager(object):
             networkSlices = self.keysToSlice[key]
             networkSlice : NetworkSlice
             for networkSlice in networkSlices:
-                serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
+                serviceRequirements = networkSlice.GetServiceRequirement(serviceAreaId)
                 sliceViolations = []
                 serviceRequirement : ServiceRequirement
                 for serviceRequirement in serviceRequirements:

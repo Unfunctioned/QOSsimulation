@@ -31,7 +31,7 @@ class ServiceArea(object):
         serviceRequirement = DynamicServiceRequirement(userDemands, None, 0, GetConfig().simConfig.PUBLIC_SLICE_RELIABILITY, 0)
         publicSlice = PublicSlice(localNetworkFolderPath)
         
-        self.localServiceNetwork = LocalServiceNetwork(self, localNetworkFolderPath, trafficCapacity, publicSlice)
+        self.localServiceNetwork = LocalServiceNetwork(self.id, localNetworkFolderPath, trafficCapacity, publicSlice)
         self.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
         self.ChangeActivity(currentTime, 1.0, 0)
     
@@ -42,17 +42,18 @@ class ServiceArea(object):
         self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
     def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
-        networkSlice.addServiceRequirement(self, serviceRequirement)
+        networkSlice.addServiceRequirement(self.id, serviceRequirement)
         self.localServiceNetwork.ActivateNetworkSlice(currentTime, networkSlice)
         
     def DeactivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
-                networkSlice.removeServiceRequirement(self, serviceRequirement)
-                if not networkSlice.hasActiveRequirements(self):
+                networkSlice.removeServiceRequirement(self.id, serviceRequirement)
+                if not networkSlice.hasActiveRequirements(self.id):
                     self.localServiceNetwork.DeactivateNetworkSlice(currentTime, networkSlice)
         
     def Terminate(self):
         self.activityHistory.terminate()
         self.localServiceNetwork.terminate()
+        self.localServiceNetwork = None
         
     def draw(self, window):
         self.cell.draw(window)

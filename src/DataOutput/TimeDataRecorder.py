@@ -5,7 +5,7 @@ class TimeDataRecorder(BaseRecorder):
     
     def __init__(self, id, headers) -> None:
         self.id = id
-        self.data = []
+        #self.data = []
         self.size = len(headers)
         self.headers = headers
         self.filePath = None
@@ -19,7 +19,7 @@ class TimeDataRecorder(BaseRecorder):
     def record(self, time, values):
         if(not len(values) == self.size):
             raise ValueError("Invalid value count")
-        self.data.append((time, values))
+        #self.data.append((time, values))
         self.file.write("{time} {value}\n".format(time = time, value = self._valuesToString(values)))
         
     def _namesToString(self):

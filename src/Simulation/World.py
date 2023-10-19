@@ -4,6 +4,7 @@ from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.Event import Event
 from Simulation.Events.EventFactory import EventFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
+
 '''Objects that represents the entire simulation environment'''
 class World(object):
     

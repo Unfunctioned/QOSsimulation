@@ -19,14 +19,13 @@ class RateItem:
 class QualityAnalyzer(BaseAnalyzer):
     
     def __init__(self, dataStorage : DataStorer) -> None:
-        self.storage = dataStorage
-        self.counts = CountItem(None, None, None)
+        self.counts = CountItem(
+            len(dataStorage.GetData(DataType.TERMINATION)),
+            len(dataStorage.GetData(DataType.SUCCESS)),
+            len(dataStorage.GetData(DataType.FAILURE)))
         self.rates = RateItem(None, None)
     
     def analyze(self):
-        self.counts.total = len(self.storage.GetData(DataType.TERMINATION))
-        self.counts.success = len(self.storage.GetData(DataType.SUCCESS))
-        self.counts.failure = len(self.storage.GetData(DataType.FAILURE))
         self.rates.success = self.counts.success / self.counts.total
         self.rates.failure = self.counts.failure / self.counts.total
         

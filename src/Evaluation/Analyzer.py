@@ -14,13 +14,12 @@ class Analyzer(BaseAnalyzer):
     def __init__(self, dataPath, totalTime) -> None:
         self.dataPath = dataPath
         self.totalTime = totalTime
-        self.storage = DataStorer()
+        self.storage = DataStorer(self.collectSimulationData())
+        self.extractData()
         self.validator = SimulationValidator(self.storage)
-        self.storage.AddData(DataType.ALL, self.collectSimulationData())
         self.qualityAnalyzer = QualityAnalyzer(self.storage)
         self.networkAnalyzer = NetworkAnalyzer(self.dataPath, self.totalTime)
         self.failureAnalyzer = FailureAnalyzer(self.storage)
-        self.extractData()
         self.outputPath = Path.joinpath(GetConfig().filePaths.simulationPath, "Results.txt")
         
     def collectSimulationData(self):
@@ -56,6 +55,9 @@ class Analyzer(BaseAnalyzer):
         self.qualityAnalyzer.analyze()
         self.networkAnalyzer.analyze()
         self.failureAnalyzer.analyze()
+        self.storage = None
         
+    def get_analyzers(self):
+        return self.networkAnalyzer, self.qualityAnalyzer, self.failureAnalyzer
         
         

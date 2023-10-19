@@ -3,26 +3,22 @@ from Configuration.globals import GetConfig
 from Simulation.WorldGenerator import *
 from pathlib import Path
 
-
 class Window(object):
     
-    def __init__(self, showOutput = False) -> None:
+    def __init__(self, world : World, showOutput = False) -> None:
         self.showPutput = showOutput
         self.window_size = GetConfig().appSettings.WINDOW_SIZE
         self.screen = None
         self.font = None
         if showOutput:
-            pygame.display.init()
-            pygame.font.init()
+            self._initPygame()
             self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
             self.font = pygame.font.SysFont('Comic Sans MS', 14)
-        worldGenerator = WorldGenerator(showOutput)
-        self.world = worldGenerator.get_world()
-        self.animate()
+        self.world = world
         
     def GetSimulationTime(self):
         return self.world.GetSimulationTime()
-        
+    
     def animate(self):
         # Run until the user asks to quit
         running = True
@@ -57,15 +53,22 @@ class Window(object):
         self.screen.fill((255, 255, 255))
         
     def getImage(self, id):
-        pygame.display.init()
-        pygame.font.init()
+        self._initPygame()
         self.screen = pygame.Surface([self.window_size[0], self.window_size[1]])
         self.font = pygame.font.SysFont('Comic Sans MS', 14)
         self.draw()
         self.world.draw(self)
-            
-        # Flip the display
-        pygame.transform.flip(self.screen, flip_x=False, flip_y=True)
-        Path().absolute()
+        
         pygame.image.save(self.screen, GetConfig().filePaths.simulationPath.joinpath("World#{no}.jpeg".format(no = id)))
-        self.screen = None
+        self._unloadPygame()
+    
+    def _initPygame(self):
+        pygame.display.init()
+        pygame.font.init()
+    
+    def _unloadPygame(self):
+        if not self.showPutput:
+            self.screen = None
+            pygame.display.quit()
+            pygame.font.quit()
+            

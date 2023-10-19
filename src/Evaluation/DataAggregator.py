@@ -19,7 +19,7 @@ class DataAggregator(object):
     def _aggregateSuccessRates(self):
         recorder = BasicDataRecorder(0, ['MIN_SUCCESS_RATE', 'MEAN_SUCCESS_RATE', 'MAX_SUCCESS_RATE', 'MAX_LATENCY_SPIKE_DURATION', 'SAMPLE_SIZE'])
         recorder.createFileOutput(GetConfig().filePaths.aggregationPath, 'AggregatedLatencyResults', withOverride=True)
-        for i in range(self.latencyResults['RUN_NO'].max() + 1):
+        for i in range(int(self.latencyResults['RUN_NO'].max()) + 1):
             data = self.latencyResults.loc[self.latencyResults['RUN_NO'] == i]
             results = [
                 data['SUCCESS_RATE'].min(),
@@ -35,7 +35,7 @@ class DataAggregator(object):
     
     
     def _loadLatencyResults(self) -> DataFrame:
-        latencyResults = DataFrame()
+        latencyResults = None
         for file in GetConfig().filePaths.analysisPath.glob('*'):
             if file.match('*LatencyResults*') and not file.match('Aggregated*'):
                 id = file.name.split('#')[1].split('.')[0]
@@ -43,5 +43,8 @@ class DataAggregator(object):
                     raise ValueError("Pattern mismatch: {pattern} should be a number".format(pattern = id))
                 data = pandas.read_csv(file, delimiter=" ")
                 data = data.assign(WORLD=id)
-                latencyResults = pandas.concat([latencyResults, data])
+                if latencyResults is None:
+                    latencyResults = data
+                else:
+                    latencyResults = pandas.concat([latencyResults, data])
         return latencyResults

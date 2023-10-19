@@ -5,7 +5,7 @@ class BasicDataRecorder(BaseRecorder):
     
     def __init__(self, id, headers) -> None:
         self.id = id
-        self.data = []
+        #self.data = []
         self.size = len(headers)
         self.headers = headers
         self.filePath = None
@@ -22,7 +22,7 @@ class BasicDataRecorder(BaseRecorder):
     def record(self, values):
         if(not len(values) == self.size):
             raise ValueError("Invalid value count")
-        self.data.append(values)
+        #self.data.append(values)
         self.file.write("{value}\n".format(value = self._valuesToString(values)))
         
     def _namesToString(self):

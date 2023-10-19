@@ -18,12 +18,12 @@ class ActivityTypeFailureCount:
 class FailureAnalyzer(BaseAnalyzer):
     
     def __init__(self, dataStorage : DataStorer) -> None:
-        self.storage = dataStorage
+        self.data = dataStorage.GetData(DataType.FAILURE)
         self.failureCount = None
         self.acitivityFailureCount = None
     
     def analyze(self):
-        data = self.storage.GetData(DataType.FAILURE)
+        data = self.data
         capacityFailures = data.loc[data['FAILURE_CAUSE'] == 'CAPACITY']
         latencyFailures = data.loc[data['FAILURE_CAUSE'] == 'LATENCY']
         self.failureCount = FailureTypeCount(len(capacityFailures), len(latencyFailures))
@@ -32,9 +32,10 @@ class FailureAnalyzer(BaseAnalyzer):
         trajectoryActivityFailures = data.loc[data['ACTIVITY_TYPE'] == 'TRAJECTORY']
         if not len(data) == len(areaActivityFailures) + len(pathActivityFailures) + len(trajectoryActivityFailures):
             raise ValueError("Inconsistent failure distribution")
-        self.acitivityFailureCount = ActivityTypeFailureCount(len(areaActivityFailures), len(pathActivityFailures),
-                                                              len(trajectoryActivityFailures),
-                                                              len(data))
+        self.acitivityFailureCount = ActivityTypeFailureCount(
+                len(areaActivityFailures), len(pathActivityFailures),
+                len(trajectoryActivityFailures), len(data)
+            )
         
     
     def printResults(self):

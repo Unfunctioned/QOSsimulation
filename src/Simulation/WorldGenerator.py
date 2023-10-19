@@ -3,6 +3,7 @@ from Utilities.SiteSpawner import *
 from Utilities.VoronoiDiagram.Voronoi import *
 from Configuration.globals import GetConfig
 from Simulation.World import World
+from Utilities.VoronoiDiagram.Cell import Cell
 import math
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Simulation.Events.EventHandler import EventHandler
@@ -43,14 +44,13 @@ class WorldGenerator(object):
         serviceAreas = []
         areaDefinitions = self.designateAreaTypes()
         areaDefinitions.sort(key= lambda item : item[1].weight)
-        index = 0
-        for (type, cell) in areaDefinitions:
-            serviceArea = ServiceArea(index, cell, type)
+        for i in range(len(areaDefinitions)):
+            type, cell = areaDefinitions[i]
+            serviceArea = ServiceArea(i, cell, type)
             serviceArea.InitializeNetwork(0)
             serviceAreas.append(serviceArea)
             self.generateActivityUpdateEvent(serviceArea)
             self.generateLatencyUpdateEvent(serviceArea)
-            index += 1
         if self.showOutput:
             print("Events in Queue: {count}".format(count = self.eventHandler.getEventCount()))
         return serviceAreas
@@ -67,16 +67,8 @@ class WorldGenerator(object):
             companies.append(company)
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
         return companies
-    
-    def generateProcess(self, companyLocation, customerLocation):
-        activities = []
-        expectedDuration = GetConfig().simConfig.BUSINESS_ACTIVITY_TIME_FACTOR * GetConfig().randoms.workDurationSimulation.randint(1,6)
-        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
-        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
-        activities.append(AreaBasedActivity(expectedDuration, companyLocation))
-        return activities
         
-    def designateAreaTypes(self):
+    def designateAreaTypes(self) -> list[Cell]:
         cells = self.voronoi.cells
         areaDefinitions = []
         areasByWeight = sorted(cells, key=lambda cell: cell.weight)

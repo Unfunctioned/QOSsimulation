@@ -17,26 +17,26 @@ class NetworkSlice(object):
             return violationHistory
         return None
         
-    def addServiceRequirement(self, serviceArea, serviceRequirement):
-        if not serviceArea in self.ServiceAreaRequirements:
-            self.ServiceAreaRequirements[serviceArea] = set([serviceRequirement])
+    def addServiceRequirement(self, serviceAreaId : int, serviceRequirement):
+        if not  serviceAreaId in self.ServiceAreaRequirements:
+            self.ServiceAreaRequirements[serviceAreaId] = set([serviceRequirement])
         else:
-            self.ServiceAreaRequirements[serviceArea].add(serviceRequirement)
+            self.ServiceAreaRequirements[serviceAreaId].add(serviceRequirement)
             
-    def removeServiceRequirement(self, serviceArea, serviceRequirement):
-        if serviceArea in self.ServiceAreaRequirements:
-            self.ServiceAreaRequirements[serviceArea].remove(serviceRequirement)
-            if len(self.ServiceAreaRequirements[serviceArea]) == 0:
-                self.ServiceAreaRequirements.pop(serviceArea)
+    def removeServiceRequirement(self, serviceAreaId : int, serviceRequirement):
+        if serviceAreaId in self.ServiceAreaRequirements:
+            self.ServiceAreaRequirements[serviceAreaId].remove(serviceRequirement)
+            if len(self.ServiceAreaRequirements[serviceAreaId]) == 0:
+                self.ServiceAreaRequirements.pop(serviceAreaId)
                           
-    def hasActiveRequirements(self, serviceArea):
-        if serviceArea in self.ServiceAreaRequirements:
+    def hasActiveRequirements(self, serviceAreaId : int):
+        if serviceAreaId in self.ServiceAreaRequirements:
             return True
         return False
     
-    def GetServiceRequirement(self, serviceArea):
-        if serviceArea in self.ServiceAreaRequirements:
-            return self.ServiceAreaRequirements[serviceArea]
+    def GetServiceRequirement(self, serviceAreaId : int):
+        if serviceAreaId in self.ServiceAreaRequirements:
+            return self.ServiceAreaRequirements[serviceAreaId]
         raise KeyError("No requirements for given service area exist")
     
     def UpdateViolationStatus(self, currentTime, serviceAreaID, violationType : ViolationStatusType):

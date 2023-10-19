@@ -11,32 +11,27 @@ from Evaluation.Plotting.Plotter import Plotter
 import time
 from Evaluation.DataAggregator import DataAggregator
 from Evaluation.Plotting.AggregationPlotter import AggregationPlotter
+from memory_profiler import profile
 
-global LATENCY_RECORDER
-LATENCY_RECORDER = None
-
-global FAILURE_RECORDER
-FAILURE_RECORDER = None
-
-MAX_SPIKE_DURATIONS = [1,2,3,4,5] #[1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
-WORLD_COUNT = len(MAX_SPIKE_DURATIONS)
+MAX_SPIKE_DURATIONS = [1,2,3,4,5] #,6,7,8,9,10,12,14,16,20,25,30]
+WORLD_COUNT = 1
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+SNAPSHOTS = []
     
 def initLatencyRecording(worldId):
     name = Path.joinpath(GetConfig().filePaths.analysisPath, "LatencyResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
     recorder = BasicDataRecorder(worldId, ["RUN_NO", "MIN_LATENCY_SPIKE_DURATION", "MAX_LATENCY_SPIKE_DURATION",
                                     "SUCCESS_RATE", "MIN_NETWORK_QUALITY", "MAX_NETWORK_QUALITY"])
     recorder.createFileOutput(GetConfig().filePaths.analysisPath, name)
-    global LATENCY_RECORDER
-    LATENCY_RECORDER = recorder
+    return recorder
     
 def initFailureRecording(worldId):
     name = Path.joinpath(GetConfig().filePaths.analysisPath, "FailureResults-" + datetime.now().strftime("%d-%m-%Y-%H-%M-%S")).name
     recorder = BasicDataRecorder(worldId, ["RUN_NO", "AREA_FAILS", "PATH_FAILS", "TRAJECTORY_FAILS", 
                                          "TOTAL_FAILS", "CAPACITY_FAILS", "LATENCY_FAILS"])
     recorder.createFileOutput(GetConfig().filePaths.analysisPath, name)
-    global FAILURE_RECORDER
-    FAILURE_RECORDER = recorder
+    return recorder
 
 def initWorldConfig(worldId : int, seedValue : int, config : Config = GetConfig()):
     if not worldId == 0 or not config.filePaths.seedId == seedValue:
@@ -57,50 +52,59 @@ def initLatencyConfig(worldId : int, iterationNo, seedValue : int):
         raise ValueError("Invalid seed configuration")
     config.eventConfig.latencySpikeDurationRange = (1, MAX_SPIKE_DURATIONS[iterationNo])
     globals.UpdateConfig(config)
-
-def runWorld(durations, worldId, seedValue):
+    
+def iterateCases(durations, worldId, seedValue):
+    initWorldConfig(worldId, seedValue)
+    latencyRecorder = initLatencyRecording(worldId)
+    failureRecorder = initFailureRecording(worldId)
     for i in range(len(durations)):
         startTime = time.time()
-        initLatencyConfig(worldId, i, seedValue)
-        jsonConfig = json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4)
-        with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
-            configFile.write(jsonConfig)
-        window = Window()
-        #print(GetConfig().filePaths.simulationPath)
-        analyzer = Analyzer(GetConfig().filePaths.simulationPath, window.GetSimulationTime())
-        analyzer.analyze()
-        #analyzer.printResults()
-        analyzer.writeData()
-        LATENCY_RECORDER.record([i, 1, durations[i], analyzer.qualityAnalyzer.rates.success,
-                        analyzer.networkAnalyzer.qualityRange.min, 
-                        analyzer.networkAnalyzer.qualityRange.max])
-        FAILURE_RECORDER.record([i, analyzer.failureAnalyzer.acitivityFailureCount.area,
-                        analyzer.failureAnalyzer.acitivityFailureCount.path,
-                        analyzer.failureAnalyzer.acitivityFailureCount.trajectory,
-                        analyzer.failureAnalyzer.acitivityFailureCount.total,
-                        analyzer.failureAnalyzer.failureCount.capacity,
-                        analyzer.failureAnalyzer.failureCount.latency])
-        window.getImage(i)
+        runWorld([worldId, seedValue], [latencyRecorder, failureRecorder], durations[i], i)
         print("Executed World #" + str(worldId) + " Seed#" + str(seedValue) + " Case#" + str(i) + ": " + str(time.time()-startTime) + "s")
-    LATENCY_RECORDER.terminate()
-    FAILURE_RECORDER.terminate()
-
-
+    
+    latencyRecorder.terminate()
+    failureRecorder.terminate()
+  
+@profile
+def runWorld(values, recorders : list[BasicDataRecorder], spikeDuration, caseNo):
+        initLatencyConfig(values[0], caseNo, values[1])
+        with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
+            configFile.write(json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4))
+       
+        world = WorldGenerator().get_world()
+        window = Window(world)
+        window.animate()
+        window.getImage(caseNo)
+        analyzeWorld(recorders, world.GetSimulationTime(), spikeDuration, caseNo)
+        
+def analyzeWorld(recorders : list[BasicDataRecorder], totalTime, spikeDuration, caseNo):
+        analyzer = Analyzer(GetConfig().filePaths.simulationPath, totalTime)
+        analyzer.analyze()
+        analyzer.writeData()
+        nA, qA, fA = analyzer.get_analyzers()
+        recorders[0].record([caseNo, 1, spikeDuration, qA.rates.success,
+                        nA.qualityRange.min, 
+                        nA.qualityRange.max])
+        recorders[1].record([caseNo, fA.acitivityFailureCount.area,
+                        fA.acitivityFailureCount.path,
+                        fA.acitivityFailureCount.trajectory,
+                        fA.acitivityFailureCount.total,
+                        fA.failureCount.capacity,
+                        fA.failureCount.latency])
+    
+def iterateSeeds(worldId):
+    for seed in range(WORLD_COUNT):
+        iterateCases(MAX_SPIKE_DURATIONS, worldId, seed)
+        
+    
 def main():
     for worldId in range(WORLD_COUNT):
-        for i in range(WORLD_COUNT):
-            initLatencyRecording(worldId)
-            initFailureRecording(worldId)        
-            initWorldConfig(worldId, i)
-            runWorld(MAX_SPIKE_DURATIONS, worldId, i)
+        iterateSeeds(worldId)
         print("World #" + str(worldId) + " complete")
     
 
 if __name__ == "__main__":
     main()
-    Plotter.addPath('Latency', LATENCY_RECORDER.filePath)
-    Plotter.addPath('Failure', FAILURE_RECORDER.filePath)
-    Plotter.plot()
     aggregator = DataAggregator()
     aggregator.aggregate()
     AggregationPlotter.plot(aggregator.filePaths['SUCCESS_RATE'])
