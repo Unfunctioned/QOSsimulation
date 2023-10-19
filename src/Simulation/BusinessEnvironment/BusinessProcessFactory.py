@@ -2,32 +2,30 @@ from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from Simulation.BusinessEnvironment.BusinessActivity import *
 from Configuration.globals import GetConfig
-from Utilities.PathGenerator import PathGenerator
+from Utilities.PathGenerator import GetPathGenerator
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 '''Factory used to generate business processes based on a business process flow'''
 class BuisnessProcessFactory(object):
-    serviceAreas = None
-    flows = None
-    pathGenerator = PathGenerator()
     
-    def SetServiceAreas(serviceAreas : list[ServiceArea]):
-        BuisnessProcessFactory.serviceAreas = serviceAreas
-        BuisnessProcessFactory.pathGenerator.Initialize(serviceAreas)
+    def __init__(self, pathGenerator : PathGenerator) -> None:
+        self.pathGenerator = pathGenerator
+        self.serviceAreas : list[ServiceArea]
+        self.serviceAreas = pathGenerator.serviceAreas
+        self.flows = self.SetBusinessProcessFlows()
         
-    def SetBusinessProcessFlows():
+    def SetBusinessProcessFlows(self):
         flow1 = [ActivityType.AREA, ActivityType.TRAJECTORY, ActivityType.AREA]
         flow2 = [ActivityType.AREA, ActivityType.PATH, ActivityType.AREA]
-        BuisnessProcessFactory.flows = [flow1, flow2]
+        return [flow1, flow2]
     
-    def SelectBusinessProcessFlow():
-        if BuisnessProcessFactory.flows is None:
-            raise ValueError("Business Process Flows not initialized")
-        return GetConfig().randoms.flowSelector.choice(BuisnessProcessFactory.flows)
+    def SelectBusinessProcessFlow(self):
+        return GetConfig().randoms.flowSelector.choice(self.flows)
     
-    def CreateBusinessActivities(processId, currentTime, companyLocation : ServiceArea, businessFlow : list[ActivityType],
+    def CreateBusinessActivities(self, processId, currentTime, companyLocation : ServiceArea,
+                                 businessFlow : list[ActivityType],
                                  activityExecutionHistory : TimeDataRecorder):
         activities = []
-        validAreas = BuisnessProcessFactory.serviceAreas.copy()
+        validAreas = self.serviceAreas.copy()
         validAreas.remove(companyLocation)
         customerLocation = GetConfig().randoms.customerLocationSelector.choice(validAreas)
         for i in range(len(businessFlow)):
@@ -48,3 +46,16 @@ class BuisnessProcessFactory(object):
                 raise ValueError("The generated activity is of NoneType")
             activities.append(activity)
         return activities
+    
+global BUSINESS_PROCESS_FACTORY
+BUSINESS_PROCESS_FACTORY = None
+
+def SetBusinessProcessFactory(factory : BuisnessProcessFactory):
+    global BUSINESS_PROCESS_FACTORY
+    BUSINESS_PROCESS_FACTORY = factory
+    
+def GetBusinessProcessFactory() -> BuisnessProcessFactory:
+    global BUSINESS_PROCESS_FACTORY
+    if BUSINESS_PROCESS_FACTORY is None:
+        raise ValueError("Business Process Factory not initialized")
+    return BUSINESS_PROCESS_FACTORY

@@ -44,6 +44,7 @@ class NetworkSliceManager(object):
         for i in range(1, len(self.activationKeys.queue)):
             key = self.activationKeys.queue[i]
             networkSlices = self.keysToSlice[key]
+            networkSlice : NetworkSlice
             for networkSlice in networkSlices:
                 if (isinstance(networkSlice, PublicSlice)):
                     continue
@@ -55,7 +56,7 @@ class NetworkSliceManager(object):
                         demand += serviceRequirement.defaultCapacityDemand
         return demand
     
-    def GetPublicDemandRange(self, serviceAreaId, publicSlice):
+    def GetPublicDemandRange(self, serviceAreaId, publicSlice : PublicSlice):
         serviceRequirements = list(publicSlice.GetServiceRequirement(serviceAreaId))
         if (not len(serviceRequirements) == 1):
             raise ValueError("Invalid public slice requirements")
@@ -74,9 +75,11 @@ class NetworkSliceManager(object):
         activationHistory.reverse()
         for key in activationHistory:
             networkSlices = self.keysToSlice[key]
+            networkSlice : NetworkSlice
             for networkSlice in networkSlices:
                 serviceRequirements = networkSlice.GetServiceRequirement(serviceArea)
                 sliceViolations = []
+                serviceRequirement : ServiceRequirement
                 for serviceRequirement in serviceRequirements:
                     if excessDemand > 0:
                         excessDemand -= serviceRequirement.defaultCapacityDemand

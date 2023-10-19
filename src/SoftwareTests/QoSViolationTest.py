@@ -4,8 +4,9 @@ from Simulation.PhysicalEnvironment.AreaType import AreaType
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Configuration.globals import GetConfig
 from Simulation.BusinessEnvironment.Company import Company
-from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
+from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory, GetBusinessProcessFactory
 from DataOutput.MockTimeDataRecorder import MockTimeDataRecorder
+from Utilities.PathGenerator import SetPathGenerator, PathGenerator
 
 class QoSViolationTest(unittest.TestCase):
     
@@ -24,10 +25,10 @@ class QoSViolationTest(unittest.TestCase):
     
     def setupCompanies(self, serviceAreas, companyCount) -> list[Company]:
         companies = []
-        BuisnessProcessFactory.SetServiceAreas(serviceAreas)
-        BuisnessProcessFactory.SetBusinessProcessFlows()
+        SetPathGenerator(PathGenerator(serviceAreas))
+        GetBusinessProcessFactory().SetBusinessProcessFlows()
         for i in range(companyCount):
-            processFlow = BuisnessProcessFactory.SelectBusinessProcessFlow()
+            processFlow = GetBusinessProcessFactory().SelectBusinessProcessFlow()
             companies.append(Company(i, serviceAreas[0], processFlow, MockTimeDataRecorder()))
         return companies
             

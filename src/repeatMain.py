@@ -1,22 +1,22 @@
-from UI.Window import *
+from UI.Window import Window
 from Evaluation.Analyzer import Analyzer
 import json
-from Configuration.globals import GetConfig
+from Configuration.globals import GetConfig, Config
 from Configuration.ConfigurationEncoder import ConfigurationEncoder
 from pathlib import Path
 from datetime import datetime
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 import Configuration.globals as globals
-from Evaluation.Plotting.Plotter import Plotter
 import time
+from Simulation.WorldGenerator import WorldGenerator
 from Evaluation.DataAggregator import DataAggregator
 from Evaluation.Plotting.AggregationPlotter import AggregationPlotter
+from Simulation.World import World
 from memory_profiler import profile
 
 MAX_SPIKE_DURATIONS = [1,2,3,4,5] #,6,7,8,9,10,12,14,16,20,25,30]
-WORLD_COUNT = 1
+WORLD_COUNT = 5
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
 SNAPSHOTS = []
     
 def initLatencyRecording(worldId):
@@ -64,18 +64,21 @@ def iterateCases(durations, worldId, seedValue):
     
     latencyRecorder.terminate()
     failureRecorder.terminate()
-  
-@profile
-def runWorld(values, recorders : list[BasicDataRecorder], spikeDuration, caseNo):
+
+def runWorld(values, recorders : list[BasicDataRecorder], spikeDuration : int, caseNo : int):
         initLatencyConfig(values[0], caseNo, values[1])
         with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
             configFile.write(json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4))
-       
-        world = WorldGenerator().get_world()
-        window = Window(world)
-        window.animate()
-        window.getImage(caseNo)
+        generator = WorldGenerator()
+        world = generator.get_world()
+        simulate(world, caseNo)
         analyzeWorld(recorders, world.GetSimulationTime(), spikeDuration, caseNo)
+        
+def simulate(world : World, caseNo : int):
+    window = Window(world)
+    window.getImage(caseNo)
+    window.animate()
+    
         
 def analyzeWorld(recorders : list[BasicDataRecorder], totalTime, spikeDuration, caseNo):
         analyzer = Analyzer(GetConfig().filePaths.simulationPath, totalTime)

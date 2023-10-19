@@ -1,5 +1,7 @@
 import pygame
 from UI.Colors import *
+from pygame.font import Font
+from pygame import Surface
 
 class Cell(object):
     
@@ -13,6 +15,9 @@ class Cell(object):
         self.minBound = (boundingBox[0], boundingBox[1])
         self.maxBound = (boundingBox[2], boundingBox[3])
         self.weight = 0
+        
+    def Terminate(self):
+        self.neighbours = None
         
     def addNeighbour(self, cell):
         self.neighbours.add(cell)
@@ -67,22 +72,19 @@ class Cell(object):
     def isLeft(self, p1, p2, pTest):
         return (p2[0] - p1[0]) * (pTest[1] - p1[1]) - (pTest[0] - p1[0]) * (p2[1] - p1[1])
     
-    def draw(self, window):
+    def draw(self, screen : Surface):
         scaledpoints = []
+        resolution = GetConfig().appSettings.WINDOW_SIZE
         for i in self.borderpoints:
-            scaledpoint = i[0]*window.window_size[0],i[1]*window.window_size[1]
+            scaledpoint = i[0]*resolution[0],i[1]*resolution[1]
             scaledpoints.append(scaledpoint)
-        scaled_site = self.site[0]*window.window_size[0], self.site[1]*window.window_size[1]
-        scaled_minBound = self.minBound[0]*window.window_size[0], self.minBound[1]*window.window_size[1]
-        scaled_maxBound = self.maxBound[0]*window.window_size[0], self.maxBound[1]*window.window_size[1]
-        pygame.draw.polygon(window.screen, Colors.GetLightVariant(self.colorcode), scaledpoints, 0)
-        pygame.draw.polygon(window.screen, (0,0,0), scaledpoints, 3)
-        pygame.draw.circle(window.screen, (0,0,255), scaled_site, 3)
-        #pygame.draw.rect(window.screen, (133,8,120),
-        #                 pygame.Rect(scaled_minBound[0], scaled_minBound[1],
-        #                             scaled_maxBound[0]-scaled_minBound[0], scaled_maxBound[1]-scaled_minBound[1]), 1)
-        
-    def drawInfo(self, window):
-        scaled_site = self.site[0]*window.window_size[0], self.site[1]*window.window_size[1]
-        textSurface = window.font.render('{area}'.format(area = round(self.area, 4)), False, (0, 0, 0))
-        window.screen.blit(textSurface, scaled_site)
+        scaled_site = self.site[0]*resolution[0], self.site[1]*resolution[1]
+        pygame.draw.polygon(screen, Colors.GetLightVariant(self.colorcode), scaledpoints, 0)
+        pygame.draw.polygon(screen, (0,0,0), scaledpoints, 3)
+        pygame.draw.circle(screen, (0,0,255), scaled_site, 3)
+
+    def drawInfo(self, screen : Surface, font : Font):
+        resolution = GetConfig().appSettings.WINDOW_SIZE
+        scaled_site = self.site[0]*resolution[0], self.site[1]*resolution[1]
+        textSurface = font.render('{area}'.format(area = round(self.area, 4)), False, (0, 0, 0))
+        screen.blit(textSurface, scaled_site)

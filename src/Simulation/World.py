@@ -4,6 +4,8 @@ from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.Event import Event
 from Simulation.Events.EventFactory import EventFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
+from pygame import Surface
+from pygame.font import Font
 
 '''Objects that represents the entire simulation environment'''
 class World(object):
@@ -59,10 +61,10 @@ class World(object):
     def GetSimulationTime(self):
         return self.totalTime
             
-    def draw(self, window):
+    def draw(self, surface : Surface, font : Font):
         for serviceArea in self.serviceAreas:
-            serviceArea.draw(window)
+            serviceArea.draw(surface, font)
             
-    def drawInfo(self, window):
+    def drawInfo(self, surface : Surface, font : Font):
         for serviceArea in self.serviceAreas:
-            serviceArea.drawInfo(window)
+            serviceArea.drawInfo(surface, font)

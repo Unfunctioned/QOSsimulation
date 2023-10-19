@@ -3,7 +3,7 @@ from Simulation.BusinessEnvironment.BusinessProcess import BusinessProcess
 from Configuration.globals import GetConfig
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
-from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
+from Simulation.BusinessEnvironment.BusinessProcessFactory import GetBusinessProcessFactory, BuisnessProcessFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 '''Defines a company entity. Companies execute mobile business processes in the simulation'''
 class Company(object):
@@ -31,7 +31,7 @@ class Company(object):
         
     def ActivateBusinessProcess(self, currentTime):
         processId = str(self.id) + "-{activations}".format(activations = self.businessProcessActivations)
-        businessProcessFlow = BuisnessProcessFactory.CreateBusinessActivities(processId, currentTime, self.location, self.businessProcessFlow, self.activityExecutionHistory)
+        businessProcessFlow = GetBusinessProcessFactory().CreateBusinessActivities(processId, currentTime, self.location, self.businessProcessFlow, self.activityExecutionHistory)
         businessProcess = BusinessProcess(processId, businessProcessFlow, self.folderPath, self.businessActivityHistory)
         self.businessProcessActivations += 1
         businessProcess.Execute(currentTime, self.networkSlice)

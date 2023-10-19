@@ -1,6 +1,7 @@
-from Utilities.RandomPointSpawner import *
-from Utilities.SiteSpawner import *
-from Utilities.VoronoiDiagram.Voronoi import *
+from Utilities.RandomPointSpawner import RandomPointSpawner
+from Utilities.VoronoiDiagram.Voronoi import Voronoi
+from UI.Colors import Colors
+from Simulation.PhysicalEnvironment.AreaType import AreaType
 from Configuration.globals import GetConfig
 from Simulation.World import World
 from Utilities.VoronoiDiagram.Cell import Cell
@@ -11,26 +12,31 @@ from Simulation.Events.UserActivityEvent import UserActivityEvent
 from Simulation.Events.LatencyEvent import LatencyEvent
 from Simulation.BusinessEnvironment.Company import Company
 from Simulation.Events.EventFactory import EventFactory
-from Simulation.BusinessEnvironment.BusinessActivity import *
+from UI.UIPoint import UIPoint
+from DataOutput.TimeDataRecorder import TimeDataRecorder
+from pygame import Surface
+from pygame.font import Font
+from Utilities.PathGenerator import SetPathGenerator, PathGenerator
+from memory_profiler import profile
 
 from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
+from Simulation.BusinessEnvironment.BusinessProcessFactory import SetBusinessProcessFactory
+from Simulation.BusinessEnvironment.BusinessProcessFactory import GetBusinessProcessFactory
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):
     
     def __init__(self, showOutput = False) -> None:
         self.showOutput = showOutput
-        self.pointSpawner = RandomPointSpawner()
-        self.siteSpawner = SiteSpawner()
-        self.voronoi = Voronoi(self.siteSpawner.SpawnPoints())
-        points = self.pointSpawner.SpawnPoints(GetConfig().simConfig.WEIGHTS)
-        self.matchPointsToCell(points)
         self.eventHandler = EventHandler()
+        voronoi = Voronoi()
+        self.matchPointsToCell(voronoi.getCells())
         self.activityHistory = TimeDataRecorder(-1, ["PROCESS_ID", "STATUS", "ACTIVITY_TYPE", "QOS_AVAILABILITY",
                                                         "FAILURE_CAUSE", "CAPACITY_VIOLATION_TIME", "LATENCY_VIOLATION_TIME"])
         self.activityHistory.createFileOutput(GetConfig().filePaths.simulationPath, "WorldActivity")
-        self.serviceAreas = self.generateServiceAreas()
-        BuisnessProcessFactory.SetBusinessProcessFlows()
-        BuisnessProcessFactory.SetServiceAreas(self.serviceAreas)
+        self.serviceAreas = self.generateServiceAreas(voronoi.getCells())
+        generator = PathGenerator(self.serviceAreas)
+        SetPathGenerator(generator)
+        SetBusinessProcessFactory(BuisnessProcessFactory(generator))
         EventFactory.InitializeOutput()
         EventFactory.InitializeSpikeTimes(self.serviceAreas)
         self.world = World(self.eventHandler,
@@ -39,10 +45,10 @@ class WorldGenerator(object):
                            self.activityHistory)
         if self.showOutput:
             self.world.printInfo()
-        
-    def generateServiceAreas(self):
+    
+    def generateServiceAreas(self, cells):
         serviceAreas = []
-        areaDefinitions = self.designateAreaTypes()
+        areaDefinitions = self.designateAreaTypes(cells)
         areaDefinitions.sort(key= lambda item : item[1].weight)
         for i in range(len(areaDefinitions)):
             type, cell = areaDefinitions[i]
@@ -59,7 +65,7 @@ class WorldGenerator(object):
         companies = []
         for i in range(GetConfig().simConfig.COMPANIES):
             serviceArea = GetConfig().randoms.companyLocationGeneration.choice(self.serviceAreas)
-            businessProcessFlow = BuisnessProcessFactory.SelectBusinessProcessFlow()
+            businessProcessFlow = GetBusinessProcessFactory().SelectBusinessProcessFlow()
             company = Company(i, serviceArea, businessProcessFlow, self.activityHistory)
             delayRange = GetConfig().eventConfig.businessProcessActivationDelayRange
             eventTime = GetConfig().randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
@@ -68,8 +74,7 @@ class WorldGenerator(object):
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
         return companies
         
-    def designateAreaTypes(self) -> list[Cell]:
-        cells = self.voronoi.cells
+    def designateAreaTypes(self, cells) -> list[Cell]:
         areaDefinitions = []
         areasByWeight = sorted(cells, key=lambda cell: cell.weight)
         areaCount = len(areasByWeight)
@@ -94,11 +99,14 @@ class WorldGenerator(object):
         self.eventHandler.addEvent(event.t, event)
         
         
-    def matchPointsToCell(self, points):
+    def matchPointsToCell(self, cells):
+        points = RandomPointSpawner.SpawnPoints(GetConfig().simConfig.WEIGHTS)
+        point : UIPoint
         for point in points:
             if self.showOutput:
                 print(point.position)
-            for cell in self.voronoi.cells:
+            cell : Cell
+            for cell in cells:
                 if(cell.isPointinCell(point.position)):
                     point.color = Colors.GetColor(cell.colorcode)
                     cell.weight += 1
@@ -107,8 +115,6 @@ class WorldGenerator(object):
     def get_world(self):
         return self.world
                     
-    def draw(self, window):
-        self.world.draw(window)
-        #self.world.drawInfo(window)
-        #self.voronoi.drawEdges(window)
+    def draw(self, surface : Surface, font : Font):
+        self.world.draw(surface, font)
         

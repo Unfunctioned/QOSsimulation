@@ -9,6 +9,7 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Configuration.globals import GetConfig
 from Simulation.NetworkEnvironment.LocalServiceNetwork import LocalServiceNetwork
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
+from Utilities.PathGenerator import PathGenerator, GetPathGenerator
 
 '''Constructs business process related events'''
 class EventFactory(object):
@@ -81,7 +82,7 @@ class EventFactory(object):
             EventFactory.history.record(event.t, ["AREA_TRANSITION", event.company.id])
             event : AreaTransitionEvent
             if event.completed:
-                duration = PathGenerator.CalculateMovementDuration(event.transitionPoint, event.currentActivity.endLocation.cell.site)         
+                duration = GetPathGenerator().CalculateMovementDuration(event.transitionPoint, event.currentActivity.endLocation.cell.site)         
                 return EventFactory.generateActivityChangeEvent(event, duration)
             return EventFactory.generateAreaTransitionEvent(event.t, event.currentActivity, event)
         ValueError("The given event did not match any known type")
@@ -168,13 +169,13 @@ class EventFactory(object):
         path = currentActivity.movementPath
         startingPosition = path[currentActivity.currentPosition]
         endPosition = path[currentActivity.currentPosition + 1]
-        p1, p2 = PathGenerator.FindCommonBorder(startingPosition, endPosition)
+        p1, p2 = GetPathGenerator().FindCommonBorder(startingPosition, endPosition)
         transitionPoint = (p1[0] + p2[0] / 2.0), (p1[1] + p2[1] / 2.0)
         startingPoint = startingPosition.cell.site[0], startingPosition.cell.site[1]
         if isinstance(event, AreaTransitionEvent):
             event : AreaTransitionEvent
             startingPoint = event.transitionPoint
-        travelTime = PathGenerator.CalculateMovementDuration(startingPoint, transitionPoint, True)
+        travelTime = GetPathGenerator().CalculateMovementDuration(startingPoint, transitionPoint, True)
         eventTime = currentTime + travelTime
         return AreaTransitionEvent(eventTime, event.company, event.businessProcess, currentActivity, transitionPoint)
         

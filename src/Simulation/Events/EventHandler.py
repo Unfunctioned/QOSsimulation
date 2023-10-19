@@ -2,6 +2,7 @@ from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
 from Simulation.Events.BusinessEvents.BusinessEvent import BusinessEvent
+from Simulation.Events.Event import Event
 
 '''Class to wrap PriorityQueue entries'''
 @dataclass(order=True)
@@ -16,7 +17,7 @@ class EventHandler(object):
         self.currentTime = 0
         self._activityEventQueue = PriorityQueue()
         
-    def addEvent(self, time : int, event):
+    def addEvent(self, time : int, event : Event):
         if not isinstance(time, int):
             raise TypeError("Expected time to be of type int")
         if(time < self.currentTime):
@@ -26,13 +27,13 @@ class EventHandler(object):
     def getNextEvent(self) -> PrioritizedItem:
         return self._activityEventQueue.get()
     
-    def getEventCount(self):
+    def getEventCount(self) -> int:
         return self._activityEventQueue._qsize()
     
-    def setCurrentTime(self, time):
+    def setCurrentTime(self, time) -> None:
         self.currentTime = time
         
-    def isEmpty(self):
+    def isEmpty(self) -> bool:
         try:
             _ = self._activityEventQueue.queue[0]
             return False
@@ -46,7 +47,7 @@ class EventHandler(object):
         except:
             return None
         
-    def advanceTime(self):
+    def advanceTime(self) -> bool:
         if(self.isEmpty()):
             return False
         try:
@@ -56,5 +57,5 @@ class EventHandler(object):
         except:
             return False
         
-    def hasBusinessActivityEvent(self):
+    def hasBusinessActivityEvent(self) -> bool:
         return any(filter(lambda x : isinstance(x.item, BusinessEvent), self._activityEventQueue.queue))

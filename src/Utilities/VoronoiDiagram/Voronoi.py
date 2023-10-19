@@ -1,19 +1,23 @@
 import numpy as np
 from scipy.spatial import Voronoi as V
-from Utilities.VoronoiDiagram.Cell import *
-from Utilities.VoronoiDiagram.VoronoiBuilder import *
-from Utilities.VoronoiDiagram.Edge import *
+from Utilities.VoronoiDiagram.Cell import Cell
+from Utilities.VoronoiDiagram.VoronoiBuilder import VoronoiBuilder
+from Utilities.VoronoiDiagram.Edge import Edge
+from Utilities.SiteSpawner import SiteSpawner
+from typing import Any
+from pygame import Surface
 
 '''Wrapper class for scipy's voronoi - works as an adapter for the simulation data structures'''
 class Voronoi(object):
     
-    def __init__(self, sites):
-        self.sites = np.array(sites)
+    def __init__(self):
+        self.sites = np.array(SiteSpawner.SpawnPoints())
         self.voronoi = V(self.sites)
         self.builder = VoronoiBuilder()
         self.createVoronoi()
-        self.cells = self.builder.cells.values()
-        self.edges = self.builder.edges
+        
+    def getCells(self) -> list[Cell]:
+        return list(self.builder.cells.values())
         
     def createVoronoi(self):
         self.defineCells()
@@ -53,7 +57,7 @@ class Voronoi(object):
         region = self.voronoi.regions[point_region[index]]
         return site, region
     
-    def getSite(self, index):
+    def getSite(self, index) -> tuple[Any, Any]:
         p = self.voronoi.points[index]
         return (p[0], p[1])
         
@@ -75,10 +79,11 @@ class Voronoi(object):
             return True
         return False
     
-    def draw(self, window):
-        for cell in self.cells:
-            cell.draw(window)
+    def draw(self, surface : Surface):
+        for cell in self.builder.cells.values():
+            cell.draw(surface)
         
-    def drawEdges(self, window):
-        for edge in self.edges:
-            edge.draw(window)
+    def drawEdges(self, surface : Surface):
+        edge : Edge
+        for edge in self.builder.edges:
+            edge.draw(surface)

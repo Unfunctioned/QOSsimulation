@@ -1,8 +1,11 @@
+from typing import Any
+from Utilities.VoronoiDiagram.Cell import Cell
 '''Stores data structures needed during Voronoi generation'''
 class VoronoiBuilder(object):
     
     def __init__(self) -> None:
         self.sites = {}
+        self.cells : dict[tuple[Any, Any], Cell]
         self.cells = {}
         self.edges = []
         

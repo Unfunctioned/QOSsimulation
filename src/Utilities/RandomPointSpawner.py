@@ -1,12 +1,10 @@
 import random
 from UI.UIPoint import UIPoint
 from Configuration.globals import GetConfig
-class RandomPointSpawner(object):
+class RandomPointSpawner:
     
-    def __init__(self) -> None:
-        pass
-    
-    def SpawnPoints(self, count):
+    @staticmethod
+    def SpawnPoints(count):
         points = []
         for _ in range(0,count):
             x = GetConfig().randoms.pointGeneration.random()

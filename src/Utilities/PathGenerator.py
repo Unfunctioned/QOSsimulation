@@ -14,20 +14,17 @@ class PrioritizedItem:
 
 '''Computes routes between service areas'''
 class PathGenerator(object):
-    serviceAreas = None
-    cellToServiceArea : dict[Cell, ServiceArea]
-    cellToServiceArea = dict()
     
-    @staticmethod
-    def Initialize(serviceAreas : list[ServiceArea]):
-        PathGenerator.serviceAreas = serviceAreas
+    def __init__(self, serviceAreas : list[ServiceArea]) -> None:
+        self.serviceAreas = serviceAreas
+        self.cellToServiceArea : dict[Cell, ServiceArea]
+        self.cellToServiceArea = dict()
         for serviceArea in serviceAreas:
-            PathGenerator.cellToServiceArea[serviceArea.cell] = serviceArea
+            self.cellToServiceArea[serviceArea.cell] = serviceArea
             
     
-    @staticmethod
-    def GenerateShortestPath(startLocation : ServiceArea, endLocation : ServiceArea):
-        cellWeights = PathGenerator.CalculateWeights(startLocation, endLocation)
+    def GenerateShortestPath(self, startLocation : ServiceArea, endLocation : ServiceArea):
+        cellWeights = self.CalculateWeights(startLocation, endLocation)
         startingCell = startLocation.cell
         endingCell = endLocation.cell
         path = []
@@ -36,17 +33,16 @@ class PathGenerator(object):
             previousMarking = cellWeights[currentCell]
             if currentCell == startingCell:
                 break
-            path.append(PathGenerator.cellToServiceArea[currentCell])
+            path.append(self.cellToServiceArea[currentCell])
             currentCell = previousMarking[1]
-        path.append(PathGenerator.cellToServiceArea[currentCell])
+        path.append(self.cellToServiceArea[currentCell])
         if not currentCell == startingCell:
             raise ValueError("Invalid path")
         path.reverse()
         return path
     
-    @staticmethod
-    def CalculateWeights(startLocation : ServiceArea, endLocation : ServiceArea) -> dict[Cell, tuple[float, Cell]]:
-        if PathGenerator.serviceAreas is None:
+    def CalculateWeights(self, startLocation : ServiceArea, endLocation : ServiceArea) -> dict[Cell, tuple[float, Cell]]:
+        if self.serviceAreas is None:
             raise ValueError("ServiceAreas not initialized")
         startingCell = startLocation.cell
         endingCell = endLocation.cell
@@ -67,7 +63,7 @@ class PathGenerator(object):
                 continue
             neighbour : Cell
             for neighbour in cell.neighbours:
-                weight = PathGenerator.CalculateDistance(cell.site, neighbour.site)
+                weight = self.CalculateDistance(cell.site, neighbour.site)
                 newWeight = currentWeight + weight
                 newCell = not neighbour in cellWeights
                 if not newCell and cellWeights[neighbour][0] == currentWeight + weight:
@@ -89,15 +85,14 @@ class PathGenerator(object):
             raise ValueError("Distance cannot be negative")
         return distance
     
-    @staticmethod
-    def calculateExpectedDuration(movementPath):
+    def calculateExpectedDuration(self, movementPath):
         totalTime = 0
         if len(movementPath) == 2:
-            unitDistance = PathGenerator.CalculateDistance(movementPath[0].cell.site, movementPath[1].cell.site)
+            unitDistance = self.CalculateDistance(movementPath[0].cell.site, movementPath[1].cell.site)
             scaledDistance = GetConfig().simConfig.SCALE * unitDistance
             return scaledDistance * GetConfig().mobilityConfig.localSpeed
         for i in range(len(movementPath)-1):
-            unitDistance = PathGenerator.CalculateDistance(movementPath[i].cell.site, movementPath[i+1].cell.site)
+            unitDistance = self.CalculateDistance(movementPath[i].cell.site, movementPath[i+1].cell.site)
             scaledDistance = GetConfig().simConfig.SCALE * unitDistance
             if i == 0 or i == len(movementPath)-2:
                 totalTime += scaledDistance * (GetConfig().mobilityConfig.localSpeed + GetConfig().mobilityConfig.passingSpeed) * 0.5
@@ -105,7 +100,7 @@ class PathGenerator(object):
             totalTime += scaledDistance * GetConfig().mobilityConfig.passingSpeed
         return totalTime
     
-    def FindCommonBorder(startingPosition : ServiceArea, endPosition : ServiceArea):
+    def FindCommonBorder(self, startingPosition : ServiceArea, endPosition : ServiceArea):
         startCell = startingPosition.cell
         endCell = endPosition.cell
         ps = []
@@ -117,13 +112,24 @@ class PathGenerator(object):
             raise ValueError("Invalid border")
         return ps[0], ps[1]
     
-    def CalculateMovementDuration(startPoint, endPoint, isLocalSpeed = False) -> int:
-        distance = PathGenerator.CalculateDistance(startPoint, endPoint)
+    def CalculateMovementDuration(self, startPoint, endPoint, isLocalSpeed = False) -> int:
+        distance = self.CalculateDistance(startPoint, endPoint)
         scaledDistance = distance * GetConfig().simConfig.SCALE
         if isLocalSpeed:
             return int(math.ceil(GetConfig().mobilityConfig.localSpeed * scaledDistance))
         return int(math.ceil(GetConfig().mobilityConfig.passingSpeed * scaledDistance))
         
-        
+global PATH_GENERATOR
+PATH_GENERATOR = None
+
+def SetPathGenerator(generator : PathGenerator):
+    global PATH_GENERATOR
+    PATH_GENERATOR = generator
+    
+def GetPathGenerator() -> PathGenerator:
+    global PATH_GENERATOR
+    if PATH_GENERATOR is None:
+        raise ValueError("Path generator not initialized")
+    return PATH_GENERATOR
             
         

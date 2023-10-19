@@ -1,4 +1,6 @@
-import pygame
+from pygame import Surface
+from pygame.draw import circle
+from Configuration.globals import GetConfig
 
 '''Represent a visual point on the UI'''
 class UIPoint(object):
@@ -7,7 +9,8 @@ class UIPoint(object):
         self.position = position
         self.color = (0, 0, 0)
         
-    def draw(self, window):
-        scaled_position = self.position[0]*window.window_size[0], self.position[1]*window.window_size[1]
-        pygame.draw.circle(window.screen, self.color, scaled_position, 3)
+    def draw(self, surface : Surface):
+        resolution = GetConfig().appSettings.WINDOW_SIZE
+        scaled_position = self.position[0]*resolution[0], self.position[1]*resolution[1]
+        circle(surface, self.color, scaled_position, 3)
         

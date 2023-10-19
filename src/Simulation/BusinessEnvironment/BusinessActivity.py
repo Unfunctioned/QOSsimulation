@@ -1,7 +1,7 @@
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
-from Utilities.PathGenerator import PathGenerator
+from Utilities.PathGenerator import PathGenerator, GetPathGenerator
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
@@ -69,10 +69,10 @@ class AreaBasedActivity(BusinessActivity):
 class PathBasedActivity(BusinessActivity):
     
     def __init__(self, processId, currentTime, history : TimeDataRecorder, startLocation, endLocation) -> None:
-        movementPath = PathGenerator.GenerateShortestPath(startLocation, endLocation)
+        movementPath = GetPathGenerator().GenerateShortestPath(startLocation, endLocation)
         if(len(movementPath) < 2):
             raise ValueError("Invalid Path")
-        expectedDuration = PathGenerator.calculateExpectedDuration(movementPath) 
+        expectedDuration = GetPathGenerator().calculateExpectedDuration(movementPath) 
         super().__init__(processId, currentTime, expectedDuration, history)
         self.movementPath = movementPath
         self.startLocation : ServiceArea

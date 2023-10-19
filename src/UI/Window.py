@@ -1,18 +1,17 @@
 import pygame
 from Configuration.globals import GetConfig
-from Simulation.WorldGenerator import *
-from pathlib import Path
+from Simulation.World import World
 
 class Window(object):
     
     def __init__(self, world : World, showOutput = False) -> None:
         self.showPutput = showOutput
-        self.window_size = GetConfig().appSettings.WINDOW_SIZE
         self.screen = None
         self.font = None
         if showOutput:
             self._initPygame()
-            self.screen = pygame.display.set_mode([self.window_size[0], self.window_size[1]])
+            resolution = GetConfig().appSettings.WINDOW_SIZE
+            self.screen = pygame.display.set_mode([resolution[0], resolution[1]])
             self.font = pygame.font.SysFont('Comic Sans MS', 14)
         self.world = world
         
@@ -20,44 +19,44 @@ class Window(object):
         return self.world.GetSimulationTime()
     
     def animate(self):
-        # Run until the user asks to quit
-        running = True
-        while running:
+        isRunning = True
+        while isRunning:
 
-            if self.showPutput:
-                # Did the user click the window close button?
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-
+            isRunning = self.handleEvents()
             self.world.Update(self.showPutput)
-            if self.showPutput:
-                self.draw()
-                self.world.draw(self)
-                pygame.display.update()
-            
-                # Flip the display
-                pygame.display.flip()
+            self.draw()
             
             #Check if simulation is complete
             if(not self.world.isRunning(self.showPutput)):
-                running = False            
-        # Done! Time to quit.
+                isRunning = False            
         self.world.Terminate()
         pygame.quit()
+        
+    def handleEvents(self):
+        if self.showPutput:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+        return True
         
 
         
     def draw(self):
-        # Fill the background with white
-        self.screen.fill((255, 255, 255))
+        if self.showPutput:
+            # Fill the background with white
+            self.screen.fill((255, 255, 255))
+            self.world.draw(self.screen, self.font)
+            pygame.display.update()
+            # Flip the display
+            pygame.display.flip()
         
     def getImage(self, id):
         self._initPygame()
-        self.screen = pygame.Surface([self.window_size[0], self.window_size[1]])
+        resolution = GetConfig().appSettings.WINDOW_SIZE
+        self.screen = pygame.Surface([resolution[0], resolution[1]])
         self.font = pygame.font.SysFont('Comic Sans MS', 14)
-        self.draw()
-        self.world.draw(self)
+        self.screen.fill((255, 255, 255))
+        self.world.draw(self.screen, self.font)
         
         pygame.image.save(self.screen, GetConfig().filePaths.simulationPath.joinpath("World#{no}.jpeg".format(no = id)))
         self._unloadPygame()
