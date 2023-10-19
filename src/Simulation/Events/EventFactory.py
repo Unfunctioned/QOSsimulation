@@ -13,37 +13,34 @@ from Utilities.PathGenerator import PathGenerator, GetPathGenerator
 
 '''Constructs business process related events'''
 class EventFactory(object):
-    history = TimeDataRecorder(0, ["EVENTTYPE", "COMPANY_ID"])
-    nextLatencySpikeTime = {}
-    nextUserActivitySpikeTime = {}
+    
+    def __init__(self, serviceAreas : list[ServiceArea]) -> None:
+        self.history = TimeDataRecorder(0, ["EVENTTYPE", "COMPANY_ID"])
+        self.history.createFileOutput(GetConfig().filePaths.simulationPath, "BusinessEventHistory")
+        self.nextLatencySpikeTime = {}
+        self.nextUserActivitySpikeTime = {}
+        self.InitializeSpikeTimes(serviceAreas)
         
-    @staticmethod
-    def InitializeOutput():
-        EventFactory.history.createFileOutput(GetConfig().filePaths.simulationPath, "BusinessEventHistory")
-        
-    @staticmethod
-    def InitializeSpikeTimes(areas: list[ServiceArea]):
+    def InitializeSpikeTimes(self, areas: list[ServiceArea]):
         config = GetConfig().eventConfig.latencySpikeDelayRange
         activityConfig = GetConfig().eventConfig.userActivitypikeDelayRange
         for area in areas:
             spikeTime = GetConfig().randoms.latencyDelay.randint(config[0], config[1])
             activitySpikeTime = GetConfig().randoms.userActivitySpikeSimulation.randint(activityConfig[0], activityConfig[1])
-            EventFactory.nextLatencySpikeTime[area.localServiceNetwork] = spikeTime
-            EventFactory.nextUserActivitySpikeTime[area] = activitySpikeTime
+            self.nextLatencySpikeTime[area.localServiceNetwork] = spikeTime
+            self.nextUserActivitySpikeTime[area] = activitySpikeTime
 
     
-    @staticmethod
-    def UpdateNextLatencySpikeTime(network : LocalServiceNetwork):
+    def UpdateNextLatencySpikeTime(self, network : LocalServiceNetwork):
         config = GetConfig().eventConfig.latencySpikeDelayRange
-        EventFactory.nextLatencySpikeTime[network] += GetConfig().randoms.latencyDelay.randint(config[0], config[1])
+        self.nextLatencySpikeTime[network] += GetConfig().randoms.latencyDelay.randint(config[0], config[1])
         
-    @staticmethod
-    def UpdateNextUserActivitySpikeTime(area : ServiceArea):
+    def UpdateNextUserActivitySpikeTime(self, area : ServiceArea):
         config = GetConfig().eventConfig.userActivitypikeDelayRange
-        EventFactory.nextUserActivitySpikeTime[area] += GetConfig().randoms.activityDelay.randint(config[0], config[1])
+        self.nextUserActivitySpikeTime[area] += GetConfig().randoms.activityDelay.randint(config[0], config[1])
 
-    @staticmethod
-    def generateActivityChangeEvent(event : BusinessEvent, addedTime = 0):
+    
+    def generateActivityChangeEvent(self, event : BusinessEvent, addedTime = 0):
         currentTime = event.t
         businessProcess = event.businessProcess
         company = event.company
@@ -53,42 +50,39 @@ class EventFactory(object):
             return ActivityChangeEvent(eventTime, company, businessProcess)
         return ActivityChangeEvent(currentTime + addedTime, company, businessProcess)
     
-    @staticmethod
-    def generateActivityEvent(previousEvent : ActivityChangeEvent):
+    def generateActivityEvent(self, previousEvent : ActivityChangeEvent):
         currentTime = previousEvent.t
         businessProcess = previousEvent.businessProcess
         currentActivity = businessProcess.GetCurrentActivity()
         if isinstance(currentActivity, AreaBasedActivity):
-            return EventFactory.generateActivityChangeEvent(previousEvent)
+            return self.generateActivityChangeEvent(previousEvent)
         if isinstance(currentActivity, TrajectoryBasedActivity):
-            return EventFactory.generateTrajectoryActivityEvent(currentTime, currentActivity, previousEvent)
+            return self.generateTrajectoryActivityEvent(currentTime, currentActivity, previousEvent)
         if isinstance(currentActivity, PathBasedActivity):
-            return EventFactory.generatePathBasedActivityEvent(currentTime, currentActivity, previousEvent)
+            return self.generatePathBasedActivityEvent(currentTime, currentActivity, previousEvent)
         raise TypeError("Invalid activity type")
     
-    @staticmethod
-    def generateFollowUp(event):
+    def generateFollowUp(self, event):
         if isinstance(event, UserActivityEvent):
-            return EventFactory.generateUserActivityEvent(event)
+            return self.generateUserActivityEvent(event)
         if isinstance(event, LatencyEvent):
-            return EventFactory.generateLatencyEvent(event)
+            return self.generateLatencyEvent(event)
         if isinstance(event, BusinessProcessActivationEvent):
-            EventFactory.history.record(event.t, ["BP_ACTIVATION", event.company.id])
-            return EventFactory.generateActivityChangeEvent(event)
+            self.history.record(event.t, ["BP_ACTIVATION", event.company.id])
+            return self.generateActivityChangeEvent(event)
         if isinstance(event, ActivityChangeEvent):
-            EventFactory.history.record(event.t, ["ACTIVITY_CHANGE", event.company.id])
-            return EventFactory.generateActivityEvent(event)
+            self.history.record(event.t, ["ACTIVITY_CHANGE", event.company.id])
+            return self.generateActivityEvent(event)
         if isinstance(event, AreaTransitionEvent):
-            EventFactory.history.record(event.t, ["AREA_TRANSITION", event.company.id])
+            self.history.record(event.t, ["AREA_TRANSITION", event.company.id])
             event : AreaTransitionEvent
             if event.completed:
                 duration = GetPathGenerator().CalculateMovementDuration(event.transitionPoint, event.currentActivity.endLocation.cell.site)         
-                return EventFactory.generateActivityChangeEvent(event, duration)
-            return EventFactory.generateAreaTransitionEvent(event.t, event.currentActivity, event)
+                return self.generateActivityChangeEvent(event, duration)
+            return self.generateAreaTransitionEvent(event.t, event.currentActivity, event)
         ValueError("The given event did not match any known type")
         
-    @staticmethod
-    def generateUserActivityEvent(event : UserActivityEvent):
+    def generateUserActivityEvent(self, event : UserActivityEvent):
         delayConfig = GetConfig().eventConfig.activityEventDelayRange
         delay = GetConfig().randoms.activityDelay.randint(delayConfig[0], delayConfig[1])
         eventTime = event.t + delay
@@ -96,20 +90,19 @@ class EventFactory(object):
         if isinstance(event, UserActivitySpikeEvent):
             if event.activityBoostDuration < delay:
                 eventTime = event.t + event.activityBoostDuration
-                EventFactory.UpdateNextUserActivitySpikeTime(event.area)
+                self.UpdateNextUserActivitySpikeTime(event.area)
                 return UserActivityEvent.generateFollowUp(event, eventTime)
-            return EventFactory.generateUserActivitySpikeEvent(event, eventTime)
+            return self.generateUserActivitySpikeEvent(event, eventTime)
         
-        if eventTime > EventFactory.nextUserActivitySpikeTime[event.area]:
-            spikeEvent = EventFactory.generateUserActivitySpikeEvent(event, eventTime)
-            EventFactory.nextLatencySpikeTime[event.area] = event.t + spikeEvent.activityBoostDuration
-            EventFactory.UpdateNextUserActivitySpikeTime(event.area)
+        if eventTime > self.nextUserActivitySpikeTime[event.area]:
+            spikeEvent = self.generateUserActivitySpikeEvent(event, eventTime)
+            self.nextLatencySpikeTime[event.area] = event.t + spikeEvent.activityBoostDuration
+            self.UpdateNextUserActivitySpikeTime(event.area)
             return spikeEvent
         
         return UserActivityEvent.generateFollowUp(event, eventTime)
     
-    @staticmethod
-    def generateUserActivitySpikeEvent(event : UserActivityEvent, eventTime):
+    def generateUserActivitySpikeEvent(self, event : UserActivityEvent, eventTime):
         newEvent = UserActivitySpikeEvent(eventTime, event.area)
         if isinstance(event, UserActivitySpikeEvent):
             if (eventTime < event.t + event.activityBoostDuration):
@@ -117,8 +110,7 @@ class EventFactory(object):
                 newEvent.SetSpike(event.spike, duration)
         return newEvent
         
-    @staticmethod
-    def generateLatencyEvent(event : LatencyEvent):
+    def generateLatencyEvent(self, event : LatencyEvent):
         delayConfig = GetConfig().eventConfig.latencyEventDelayRange
         delay = GetConfig().randoms.latencyDelay.randint(delayConfig[0], delayConfig[1])
         eventTime = event.t + delay
@@ -126,21 +118,20 @@ class EventFactory(object):
         if isinstance(event, LatencySpikeEvent):
             if event.spikeDuration < delay:
                 eventTime = event.t + event.spikeDuration
-                EventFactory.nextLatencySpikeTime[event.network] = eventTime
-                EventFactory.UpdateNextLatencySpikeTime(event.network)
+                self.nextLatencySpikeTime[event.network] = eventTime
+                self.UpdateNextLatencySpikeTime(event.network)
                 return LatencyEvent.generateFollowUp(event, eventTime)
         
-            return EventFactory.generateLatencySpikeEvent(event, eventTime)
+            return self.generateLatencySpikeEvent(event, eventTime)
         
-        if eventTime > EventFactory.nextLatencySpikeTime[event.network]:
-            spikeEvent = EventFactory.generateLatencySpikeEvent(event, eventTime)
-            EventFactory.nextLatencySpikeTime[event.network] = event.t + spikeEvent.spikeDuration
-            EventFactory.UpdateNextLatencySpikeTime(event.network)
+        if eventTime > self.nextLatencySpikeTime[event.network]:
+            spikeEvent = self.generateLatencySpikeEvent(event, eventTime)
+            self.nextLatencySpikeTime[event.network] = event.t + spikeEvent.spikeDuration
+            self.UpdateNextLatencySpikeTime(event.network)
             return spikeEvent
         return LatencyEvent.generateFollowUp(event, eventTime)
     
-    @staticmethod
-    def generateLatencySpikeEvent(event : LatencyEvent, eventTime):
+    def generateLatencySpikeEvent(self, event : LatencyEvent, eventTime):
         newEvent = LatencySpikeEvent(eventTime, event.network)
         if isinstance(event, LatencySpikeEvent):
             if (eventTime < event.t + event.spikeDuration):
@@ -148,24 +139,20 @@ class EventFactory(object):
                 newEvent.SetSpike(event.spike, duration)
         return newEvent
         
-    @staticmethod
-    def generateBusinessProcessActivationEvent(eventTime, company):
+    def generateBusinessProcessActivationEvent(self, eventTime, company):
         return BusinessProcessActivationEvent(eventTime, company)
       
-    @staticmethod
-    def generateTrajectoryActivityEvent(currentTime, currentActivity : PathBasedActivity, event : ActivityChangeEvent):
+    def generateTrajectoryActivityEvent(self, currentTime, currentActivity : PathBasedActivity, event : ActivityChangeEvent):
         if currentActivity.currentPosition == len(currentActivity.movementPath) - 1:
-            return EventFactory.generateActivityChangeEvent(event)
-        return EventFactory.generateAreaTransitionEvent(currentTime, currentActivity, event)
+            return self.generateActivityChangeEvent(event)
+        return self.generateAreaTransitionEvent(currentTime, currentActivity, event)
     
-    @staticmethod
-    def generatePathBasedActivityEvent(currentTime, currentActivity : PathBasedActivity, event : ActivityChangeEvent):
+    def generatePathBasedActivityEvent(self, currentTime, currentActivity : PathBasedActivity, event : ActivityChangeEvent):
         if currentActivity.currentPosition == len(currentActivity.movementPath) - 1:
-            return EventFactory.generateActivityChangeEvent(event)
-        return EventFactory.generateAreaTransitionEvent(currentTime, currentActivity, event)
+            return self.generateActivityChangeEvent(event)
+        return self.generateAreaTransitionEvent(currentTime, currentActivity, event)
     
-    @staticmethod
-    def generateAreaTransitionEvent(currentTime, currentActivity : PathBasedActivity, event : BusinessEvent):
+    def generateAreaTransitionEvent(self, currentTime, currentActivity : PathBasedActivity, event : BusinessEvent):
         path = currentActivity.movementPath
         startingPosition = path[currentActivity.currentPosition]
         endPosition = path[currentActivity.currentPosition + 1]
@@ -178,4 +165,16 @@ class EventFactory(object):
         travelTime = GetPathGenerator().CalculateMovementDuration(startingPoint, transitionPoint, True)
         eventTime = currentTime + travelTime
         return AreaTransitionEvent(eventTime, event.company, event.businessProcess, currentActivity, transitionPoint)
-        
+    
+global EVENT_FACTORY
+EVENT_FACTORY = None
+
+def SetEventFactory(factory : EventFactory):
+    global EVENT_FACTORY
+    EVENT_FACTORY = factory
+    
+def GetEventFactory() -> EventFactory:
+    global EVENT_FACTORY
+    if EVENT_FACTORY is None:
+        raise ValueError("Path generator not initialized")
+    return EVENT_FACTORY

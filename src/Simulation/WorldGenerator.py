@@ -11,7 +11,7 @@ from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.UserActivityEvent import UserActivityEvent
 from Simulation.Events.LatencyEvent import LatencyEvent
 from Simulation.BusinessEnvironment.Company import Company
-from Simulation.Events.EventFactory import EventFactory
+from Simulation.Events.EventFactory import EventFactory, SetEventFactory, GetEventFactory
 from UI.UIPoint import UIPoint
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
@@ -37,8 +37,7 @@ class WorldGenerator(object):
         generator = PathGenerator(self.serviceAreas)
         SetPathGenerator(generator)
         SetBusinessProcessFactory(BuisnessProcessFactory(generator))
-        EventFactory.InitializeOutput()
-        EventFactory.InitializeSpikeTimes(self.serviceAreas)
+        SetEventFactory(EventFactory(self.serviceAreas))
         self.world = World(self.eventHandler,
                            self.serviceAreas,
                            self.generateCompanies(),
@@ -69,7 +68,7 @@ class WorldGenerator(object):
             company = Company(i, serviceArea, businessProcessFlow, self.activityHistory)
             delayRange = GetConfig().eventConfig.businessProcessActivationDelayRange
             eventTime = GetConfig().randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
-            activationEvent = EventFactory.generateBusinessProcessActivationEvent(eventTime, company)
+            activationEvent = GetEventFactory().generateBusinessProcessActivationEvent(eventTime, company)
             companies.append(company)
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
         return companies

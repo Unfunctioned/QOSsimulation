@@ -2,7 +2,7 @@ from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Configuration.globals import GetConfig
 from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.Event import Event
-from Simulation.Events.EventFactory import EventFactory
+from Simulation.Events.EventFactory import GetEventFactory, EventFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
 from pygame.font import Font
@@ -45,7 +45,7 @@ class World(object):
             event = entry.item
             event.trigger()
             if(event.generateFollowUpEvent and self.eventHandler.hasBusinessActivityEvent()):
-                followUpEvent = EventFactory.generateFollowUp(event)
+                followUpEvent = GetEventFactory().generateFollowUp(event)
                 self.eventHandler.addEvent(followUpEvent.t, followUpEvent)
             if(self.eventHandler.isEmpty() or self.eventHandler.currentTime < (self.eventHandler.Peek()).priority):
                 getNext = False
