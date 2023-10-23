@@ -30,8 +30,8 @@ class LatencyPlotter:
         
         fig3 = plt.figure()
         ax3 = fig3.add_subplot(1,1,1)
-        ax3.plot(data['RUN_NO'], data['MIN_LATENCY_SPIKE_DURATION'])
-        ax3.plot(data['RUN_NO'], data['MAX_LATENCY_SPIKE_DURATION'])
+        ax3.plot(data['CASE'], data['MIN_LATENCY_SPIKE_DURATION'])
+        ax3.plot(data['CASE'], data['MAX_LATENCY_SPIKE_DURATION'])
         ax3.legend(["Min. Duration", "Max. Duration"], loc ="lower right")
         ax3.set_title('Latency Spike Configurations')
         ax3.set_xlabel('Simulation Number (#)')
