@@ -41,6 +41,7 @@ class BusinessProcess(object):
         if self.activeActivityIndex < len(self.activities) - 1:
             self.activeActivityIndex += 1
             nextActivity = self.activities[self.activeActivityIndex]
+            assert activity.activated
             nextActivity.activate(currentTime, networkSlice)
         activity.deactivate(currentTime, networkSlice)
         return nextActivity

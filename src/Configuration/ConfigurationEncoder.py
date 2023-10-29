@@ -2,6 +2,7 @@ import json
 from typing import Any
 from Configuration.BaseConfig import BaseConfig
 from random import Random
+from Configuration.SimulationMode import SimulationMode
 '''JSON encoder for simulation configurations'''
 class ConfigurationEncoder(json.JSONEncoder):
     

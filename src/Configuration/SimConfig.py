@@ -1,5 +1,6 @@
 from Simulation.PhysicalEnvironment.AreaType import AreaType
 from Configuration.BaseConfig import BaseConfig
+from Configuration.SimulationMode import SimulationMode
 '''Stores configurations for the simulation'''
 class SimConfig(BaseConfig):
     
@@ -35,7 +36,7 @@ class SimConfig(BaseConfig):
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         #Defines number of active companies in the simulation
-        self.COMPANIES = 1000
+        self.COMPANIES = 10000
         #Defines the time factor (in seconds) to determine business activity durations
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         #Reliablity of public slices
@@ -44,8 +45,13 @@ class SimConfig(BaseConfig):
         #Default latency for local service networks
         self.DEFAULT_LATENCY = 9.5
         
+        #Set simulation mode
+        self.SIMULATION_MODE = SimulationMode.SCHEDULING
+        
     def jsonable(self):
-        return self.__dict__
+        jsonDict = self.__dict__.copy()
+        jsonDict['SIMULATION_MODE'] = SimulationMode.SCHEDULING.name
+        return jsonDict
         
     def scale(self, value):
         return value * (self.SCALE ** 2)

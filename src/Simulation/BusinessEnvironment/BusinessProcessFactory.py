@@ -23,7 +23,7 @@ class BuisnessProcessFactory(object):
     
     def CreateBusinessActivities(self, processId, currentTime, companyLocation : ServiceArea,
                                  businessFlow : list[ActivityType],
-                                 activityExecutionHistory : TimeDataRecorder):
+                                 activityExecutionHistory : TimeDataRecorder) -> list[BusinessActivity]:
         activities = []
         validAreas = self.serviceAreas.copy()
         validAreas.remove(companyLocation)

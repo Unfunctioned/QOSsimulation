@@ -3,12 +3,15 @@ from Simulation.BusinessEnvironment.BusinessProcess import BusinessProcess
 from Configuration.globals import GetConfig
 from DataOutput.BasicDataRecorder import BasicDataRecorder
 from Simulation.BusinessEnvironment.ActivityType import ActivityType
-from Simulation.BusinessEnvironment.BusinessProcessFactory import GetBusinessProcessFactory, BuisnessProcessFactory
+from Simulation.BusinessEnvironment.BusinessProcessFactory import GetBusinessProcessFactory
+from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
+from Simulation.BusinessEnvironment.BusinessActivity import BusinessActivity
+
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 '''Defines a company entity. Companies execute mobile business processes in the simulation'''
 class Company(object):
     
-    def __init__(self, id, location, businessProcessFlow : list[ActivityType],
+    def __init__(self, id, location : ServiceArea, businessProcessFlow : list[ActivityType],
                  activityExecutionHistory : TimeDataRecorder) -> None:
         self.folderPath = None
         self.id = id
@@ -28,11 +31,13 @@ class Company(object):
             history.createFileOutput(self.folderPath, "ActivityHistory")
             return history
         return None
-        
-    def ActivateBusinessProcess(self, currentTime):
+    
+    def GenerateBusinessProcessProcess(self, currentTime : int) -> BusinessProcess:
         processId = str(self.id) + "-{activations}".format(activations = self.businessProcessActivations)
-        businessProcessFlow = GetBusinessProcessFactory().CreateBusinessActivities(processId, currentTime, self.location, self.businessProcessFlow, self.activityExecutionHistory)
-        businessProcess = BusinessProcess(processId, businessProcessFlow, self.folderPath, self.businessActivityHistory)
+        activityFlow = GetBusinessProcessFactory().CreateBusinessActivities(processId, currentTime, self.location, self.businessProcessFlow, self.activityExecutionHistory)
+        return BusinessProcess(processId, activityFlow, self.folderPath, self.businessActivityHistory)
+                
+    def ActivateBusinessProcess(self, currentTime, businessProcess : BusinessProcess):
         self.businessProcessActivations += 1
         businessProcess.Execute(currentTime, self.networkSlice)
         return businessProcess

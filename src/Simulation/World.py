@@ -2,7 +2,7 @@ from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
 from Configuration.globals import GetConfig
 from Simulation.Events.EventHandler import EventHandler
 from Simulation.Events.Event import Event
-from Simulation.Events.EventFactory import GetEventFactory, EventFactory
+from Simulation.Events.EventFactory import GetEventFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
 from pygame.font import Font
@@ -18,7 +18,7 @@ class World(object):
         self.companies = companies
         self.activeProcesses = set()
         self.activityHistory = activityHistory
-        self.totalTime = None
+        self.totalTime = -1
         
     def isRunning(self, showOutput = False):
         if (self.eventHandler.currentTime > 0 and self.eventHandler.isEmpty()):
@@ -39,6 +39,7 @@ class World(object):
         if showOutput:
             print(self.eventHandler.currentTime)
         getNext = True
+        eventsOnTimeStep = 0
         while getNext:
             entry = self.eventHandler.getNextEvent()
             event : Event
@@ -49,6 +50,9 @@ class World(object):
                 self.eventHandler.addEvent(followUpEvent.t, followUpEvent)
             if(self.eventHandler.isEmpty() or self.eventHandler.currentTime < (self.eventHandler.Peek()).priority):
                 getNext = False
+            eventsOnTimeStep += 1
+            if eventsOnTimeStep % 1000 == 999:
+                print("Processed {count} events on timestep: {time}".format(count = eventsOnTimeStep+1, time = self.eventHandler.currentTime))
         
         
     def Terminate(self):
@@ -58,7 +62,9 @@ class World(object):
         self.activityHistory.terminate()
         
                 
-    def GetSimulationTime(self):
+    def GetSimulationTime(self) -> int:
+        if self.totalTime < 0:
+            raise ValueError("Total time not set")
         return self.totalTime
             
     def draw(self, surface : Surface, font : Font):

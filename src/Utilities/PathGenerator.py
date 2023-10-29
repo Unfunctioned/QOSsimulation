@@ -23,7 +23,7 @@ class PathGenerator(object):
             self.cellToServiceArea[serviceArea.cell] = serviceArea
             
     
-    def GenerateShortestPath(self, startLocation : ServiceArea, endLocation : ServiceArea):
+    def GenerateShortestPath(self, startLocation : ServiceArea, endLocation : ServiceArea) -> list[ServiceArea]:
         cellWeights = self.CalculateWeights(startLocation, endLocation)
         startingCell = startLocation.cell
         endingCell = endLocation.cell
@@ -85,12 +85,12 @@ class PathGenerator(object):
             raise ValueError("Distance cannot be negative")
         return distance
     
-    def calculateExpectedDuration(self, movementPath):
+    def calculateExpectedDuration(self, movementPath : list[ServiceArea]) -> int:
         totalTime = 0
         if len(movementPath) == 2:
             unitDistance = self.CalculateDistance(movementPath[0].cell.site, movementPath[1].cell.site)
             scaledDistance = GetConfig().simConfig.SCALE * unitDistance
-            return scaledDistance * GetConfig().mobilityConfig.localSpeed
+            return math.ceil(scaledDistance * GetConfig().mobilityConfig.localSpeed)
         for i in range(len(movementPath)-1):
             unitDistance = self.CalculateDistance(movementPath[i].cell.site, movementPath[i+1].cell.site)
             scaledDistance = GetConfig().simConfig.SCALE * unitDistance
@@ -98,6 +98,7 @@ class PathGenerator(object):
                 totalTime += scaledDistance * (GetConfig().mobilityConfig.localSpeed + GetConfig().mobilityConfig.passingSpeed) * 0.5
                 continue
             totalTime += scaledDistance * GetConfig().mobilityConfig.passingSpeed
+        totalTime = math.ceil(totalTime)
         return totalTime
     
     def FindCommonBorder(self, startingPosition : ServiceArea, endPosition : ServiceArea):
@@ -118,6 +119,9 @@ class PathGenerator(object):
         if isLocalSpeed:
             return int(math.ceil(GetConfig().mobilityConfig.localSpeed * scaledDistance))
         return int(math.ceil(GetConfig().mobilityConfig.passingSpeed * scaledDistance))
+    
+    def CalculateTransitionPoint(self, point1, point2):
+        return (point1[0] + point2[0] / 2.0), (point1[1] + point2[1] / 2.0)
         
 global PATH_GENERATOR
 PATH_GENERATOR = None

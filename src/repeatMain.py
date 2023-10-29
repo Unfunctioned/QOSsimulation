@@ -14,8 +14,8 @@ from Evaluation.Plotting.AggregationPlotter import AggregationPlotter
 from Simulation.World import World
 from memory_profiler import profile
 
-MAX_SPIKE_DURATIONS = [1,2,3] #4,5,6,7,8,9,10,12,14,16,20,25,30]
-WORLD_COUNT = len(MAX_SPIKE_DURATIONS)
+MAX_SPIKE_DURATIONS = [1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
+WORLD_COUNT = 10
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SNAPSHOTS = []
     

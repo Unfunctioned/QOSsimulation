@@ -6,17 +6,18 @@ from Configuration.globals import GetConfig
 class ServiceRequirement(object):
     
     @staticmethod
-    def GenerateDefaultRequirements(currentTime):
+    def GenerateDefaultRequirements(currentTime : int, expectedActivityDuration : int):
         capacity = GetConfig().serviceConfig.CAPACITY_DEFAULT
         latency = GetConfig().serviceConfig.LATENCY_DEFAULT
         reliability = GetConfig().serviceConfig.RELIABILITY_DEFAULT
-        return ServiceRequirement(capacity, latency, reliability, currentTime)
+        return ServiceRequirement(capacity, latency, reliability, currentTime, expectedActivityDuration)
     
-    def __init__(self, capacity, latency, reliability, creationTime) -> None:
+    def __init__(self, capacity : int, latency : int, reliability : float, creationTime : int, expectedActivityDuration : int) -> None:
         self.defaultCapacityDemand = capacity
         self.latency = latency
         #A value between 0.0 and 1.0 representing a percentage how available the network service must be
         self.reliability = reliability
+        self.expectedActivityDuration = expectedActivityDuration
         self.totalViolationTime = 0
         self.latencyViolationTime = 0
         self.capacityViolationTime = 0
@@ -47,7 +48,7 @@ class DynamicServiceRequirement(ServiceRequirement):
         self.maxUserDemand = userCapacities[1]
         self.minUserDemand = userCapacities[0]
         self.maxCapacityDemand = self.users * self.maxUserDemand
-        super().__init__(self.users * self.minUserDemand, latency, reliability, creationTime)
+        super().__init__(self.users * self.minUserDemand, latency, reliability, creationTime, -1)
         
     def UpdateUsers(self, newUserCount):
         self.users = newUserCount

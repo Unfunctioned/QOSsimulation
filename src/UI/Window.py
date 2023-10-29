@@ -8,14 +8,14 @@ class Window(object):
         self.showPutput = showOutput
         self.screen = None
         self.font = None
-        if showOutput:
+        if self.showPutput:
             self._initPygame()
             resolution = GetConfig().appSettings.WINDOW_SIZE
             self.screen = pygame.display.set_mode([resolution[0], resolution[1]])
             self.font = pygame.font.SysFont('Comic Sans MS', 14)
         self.world = world
         
-    def GetSimulationTime(self):
+    def GetSimulationTime(self) -> int:
         return self.world.GetSimulationTime()
     
     def animate(self):

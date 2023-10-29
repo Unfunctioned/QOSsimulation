@@ -9,23 +9,27 @@ from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusTyp
 '''Represents a business activity of a business process'''
 class BusinessActivity(object):
     
-    def __init__(self, processId, currentTime, expectedDuration, executionHistory : TimeDataRecorder) -> None:
+    def __init__(self, processId, currentTime, expectedDuration : int, executionHistory : TimeDataRecorder) -> None:
+        if not isinstance(expectedDuration, int):
+            raise TypeError("Value should be of type int")
         self.processId = processId
-        self.serviceRequirement = ServiceRequirement.GenerateDefaultRequirements(currentTime)
         self.expectedDuration = expectedDuration
+        self.serviceRequirement = ServiceRequirement.GenerateDefaultRequirements(currentTime, expectedDuration)
         self.activationTime = -1
         self.executionHistory = executionHistory
         self.totalTime = -1
         self.activityType = None
+        self.activated = False
         
     def getTypeName(self):
         return self.activityType
         
-    def activate(self, currentTime, networkSlice : NetworkSlice):
+    def activate(self, currentTime):
         self.activationTime = currentTime
         self.executionHistory.record(currentTime, [self.processId, "ACTIVATION", self.getTypeName(), -1, "N/A", -1, -1])
+        self.activated = True
     
-    def deactivate(self, currentTime, networkSlice : NetworkSlice):
+    def deactivate(self, currentTime):
         self.totalTime = currentTime - self.activationTime
         QoSrate = (self.totalTime - self.serviceRequirement.totalViolationTime) / self.totalTime
         result = "SUCCESS"
@@ -57,12 +61,12 @@ class AreaBasedActivity(BusinessActivity):
         return self.activityType.name
         
     def activate(self, currentTime, networkSlice : NetworkSlice):
-        super().activate(currentTime, networkSlice)
+        super().activate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
         self.location.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
     def deactivate(self, currentTime, networkSlice : NetworkSlice):
-        super().deactivate(currentTime, networkSlice)
+        super().deactivate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
         self.location.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
@@ -87,12 +91,12 @@ class PathBasedActivity(BusinessActivity):
         return self.activityType.name
         
     def activate(self, currentTime, networkSlice : NetworkSlice):
-        super().activate(currentTime, networkSlice)
+        super().activate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
         self.startLocation.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
     def deactivate(self, currentTime, networkSlice : NetworkSlice):
-        super().deactivate(currentTime, networkSlice)
+        super().deactivate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
         self.endLocation.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         

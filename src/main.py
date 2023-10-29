@@ -4,12 +4,15 @@ import json
 from Configuration.globals import GetConfig
 from Configuration.ConfigurationEncoder import ConfigurationEncoder
 from pathlib import Path
+from Simulation.WorldGenerator import WorldGenerator
 
 def main():
     jsonConfig = json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4)
     with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
         configFile.write(jsonConfig)
-    window = Window(True)
+    world = WorldGenerator().get_world()
+    window = Window(world, False)
+    window.animate()
     print(GetConfig().filePaths.simulationPath)
     analyzer = Analyzer(GetConfig().filePaths.simulationPath, window.GetSimulationTime())
     analyzer.analyze()
