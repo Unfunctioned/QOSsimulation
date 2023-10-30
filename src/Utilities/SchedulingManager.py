@@ -14,7 +14,8 @@ class SchedulingManager(object):
         for area in reservations:
             areaReservations = reservations[area]
             for reservation in areaReservations:
-                if not area.CanScheduleNetworkSlice(nextActivationTime, reservation):
+                serviceNetwork = area.GetLocalServiceNetwork()
+                if not serviceNetwork.CanScheduleNetworkSlice(nextActivationTime, reservation):
                     return False, (area, reservation)
                 nextActivationTime += reservation.duration
         return True, (None, None)
@@ -25,7 +26,8 @@ class SchedulingManager(object):
             areaReservations : tuple[int, ServiceRequirement]
             areaReservations = reservations[area]
             for reservation in areaReservations:
-                area.ScheduleNetworkSlice(nextActivationTime, networkSlice, reservation)
+                serviceNetwork = area.GetLocalServiceNetwork()
+                serviceNetwork.ScheduleNetworkSlice(nextActivationTime, networkSlice, reservation)
                 nextActivationTime = activationTime
                 
     def FindFirstAvailability(self, activationTime : int, reservations : dict[ServiceArea, list[tuple[int, ServiceRequirement]]]) -> int:
@@ -36,7 +38,8 @@ class SchedulingManager(object):
         while not canSchedule:
             canSchedule = self.CanScheduleReservations(candidateTime, reservations)
             if not canSchedule:
-                foundTime, candidateTime = firstArea.TryFindNextPossibleAllocation(candidateTime + 1, reservations[firstArea])
+                serviceNetwork = firstArea.GetLocalServiceNetwork()
+                foundTime, candidateTime = serviceNetwork.TryFindNextPossibleAllocation(candidateTime + 1, reservations[firstArea])
                 if not foundTime:
                     raise Exception("Unable to start process in given area")
             attempts += 1

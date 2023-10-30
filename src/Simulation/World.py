@@ -6,6 +6,7 @@ from Simulation.Events.EventFactory import GetEventFactory
 from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
 from pygame.font import Font
+from Simulation.Events.BusinessEvents.BusinessEvent import BusinessEvent
 
 '''Objects that represents the entire simulation environment'''
 class World(object):
@@ -45,7 +46,9 @@ class World(object):
             event : Event
             event = entry.item
             event.trigger()
-            if(event.generateFollowUpEvent and self.eventHandler.hasBusinessActivityEvent()):
+            isBusinessEvent = isinstance(event, BusinessEvent)
+            hasBusinessEvents = self.eventHandler.hasBusinessActivityEvent()
+            if(event.generateFollowUpEvent and (hasBusinessEvents or isBusinessEvent)):
                 followUpEvent = GetEventFactory().generateFollowUp(event)
                 self.eventHandler.addEvent(followUpEvent.t, followUpEvent)
             if(self.eventHandler.isEmpty() or self.eventHandler.currentTime < (self.eventHandler.Peek()).priority):

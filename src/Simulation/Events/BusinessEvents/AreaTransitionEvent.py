@@ -23,8 +23,10 @@ class AreaTransitionEvent(BusinessEvent):
         path = self.currentActivity.movementPath
         try:
             networkSlice = self.company.networkSlice
-            path[currentPosition + 1].ActivateNetworkSlice(self.t, networkSlice, serviceRequirement)
-            path[currentPosition].DeactivateNetworkSlice(self.t, networkSlice, serviceRequirement)
+            nextNetwork = path[currentPosition + 1].GetLocalServiceNetwork()
+            nextNetwork.ActivateNetworkSlice(self.t, networkSlice, serviceRequirement)
+            currentNetwork = path[currentPosition].GetLocalServiceNetwork()
+            currentNetwork.DeactivateNetworkSlice(self.t, networkSlice, serviceRequirement)
             if not self.businessProcess.activityHistory is None:
                 self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.AREA_TRANSITION])
             self.currentActivity.currentPosition += 1

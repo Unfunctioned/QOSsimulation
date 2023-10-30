@@ -63,12 +63,14 @@ class AreaBasedActivity(BusinessActivity):
     def activate(self, currentTime, networkSlice : NetworkSlice):
         super().activate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
-        self.location.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+        network = self.location.GetLocalServiceNetwork()
+        network.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
     def deactivate(self, currentTime, networkSlice : NetworkSlice):
         super().deactivate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
-        self.location.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+        network = self.location.GetLocalServiceNetwork()
+        network.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
 class PathBasedActivity(BusinessActivity):
     
@@ -93,12 +95,14 @@ class PathBasedActivity(BusinessActivity):
     def activate(self, currentTime, networkSlice : NetworkSlice):
         super().activate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
-        self.startLocation.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+        network = self.startLocation.GetLocalServiceNetwork()
+        network.ActivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
     def deactivate(self, currentTime, networkSlice : NetworkSlice):
         super().deactivate(currentTime)
         self.serviceRequirement.lastUpdateTime = currentTime
-        self.endLocation.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
+        network = self.endLocation.GetLocalServiceNetwork()
+        network.DeactivateNetworkSlice(currentTime, networkSlice, self.serviceRequirement)
         
 class TrajectoryBasedActivity(PathBasedActivity):
     

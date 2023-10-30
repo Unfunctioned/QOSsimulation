@@ -18,7 +18,7 @@ class PriorityFirstManager(NetworkSliceManager):
         if not activationTime in self.activationKeys.queue:
             self.activationKeys.put(activationTime)
         if networkSlice in self.sliceToKey:
-            self.removeNetworkSlice(networkSlice)
+            self.removeNetworkSlice(activationTime, networkSlice)
         if activationTime in self.keysToSlice:
             self.keysToSlice[activationTime].append(networkSlice)
         else:
