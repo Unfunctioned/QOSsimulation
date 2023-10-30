@@ -17,11 +17,13 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
 from pygame.font import Font
 from Utilities.PathGenerator import SetPathGenerator, PathGenerator
+from Utilities.SchedulingManager import SetSchedulingManager, SchedulingManager
 from memory_profiler import profile
 
 from Simulation.BusinessEnvironment.BusinessProcessFactory import BuisnessProcessFactory
 from Simulation.BusinessEnvironment.BusinessProcessFactory import SetBusinessProcessFactory
 from Simulation.BusinessEnvironment.BusinessProcessFactory import GetBusinessProcessFactory
+
 '''Responsible for generating the simulation environment'''
 class WorldGenerator(object):
     
@@ -36,6 +38,7 @@ class WorldGenerator(object):
         self.serviceAreas = self.generateServiceAreas(voronoi.getCells())
         generator = PathGenerator(self.serviceAreas)
         SetPathGenerator(generator)
+        SetSchedulingManager(SchedulingManager(self.serviceAreas))
         SetBusinessProcessFactory(BuisnessProcessFactory(generator))
         SetEventFactory(EventFactory(self.serviceAreas))
         self.world = World(self.eventHandler,
@@ -46,6 +49,7 @@ class WorldGenerator(object):
             self.world.printInfo()
     
     def generateServiceAreas(self, cells):
+        print("Generating {count} Service Areas...".format(count = len(cells)))
         serviceAreas = []
         areaDefinitions = self.designateAreaTypes(cells)
         areaDefinitions.sort(key= lambda item : item[1].weight)
@@ -61,6 +65,7 @@ class WorldGenerator(object):
         return serviceAreas
         
     def generateCompanies(self):
+        print("Generating {count} Companies...".format(count = GetConfig().simConfig.COMPANIES))
         companies = []
         for i in range(GetConfig().simConfig.COMPANIES):
             serviceArea = GetConfig().randoms.companyLocationGeneration.choice(self.serviceAreas)
@@ -68,9 +73,11 @@ class WorldGenerator(object):
             company = Company(i, serviceArea, businessProcessFlow, self.activityHistory)
             delayRange = GetConfig().eventConfig.businessProcessActivationDelayRange
             eventTime = GetConfig().randoms.businessProcessActivationSimulation.randint(delayRange[0], delayRange[1])
-            activationEvent = GetEventFactory().generateBusinessProcessActivationEvent(eventTime, company)
+            activationEvent = GetEventFactory().generateBusinessProcessActivationEvent(0, eventTime, company)
             companies.append(company)
             self.eventHandler.addEvent(activationEvent.t, activationEvent)
+            if i % 1000 == 999 and i > 0:
+                print("Finished generating {count} Companies".format(count = i+1))
         return companies
         
     def designateAreaTypes(self, cells) -> list[Cell]:

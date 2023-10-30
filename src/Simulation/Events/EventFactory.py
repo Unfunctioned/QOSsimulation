@@ -9,7 +9,11 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 from Configuration.globals import GetConfig
 from Simulation.NetworkEnvironment.LocalServiceNetwork import LocalServiceNetwork
 from Simulation.PhysicalEnvironment.ServiceArea import ServiceArea
-from Utilities.PathGenerator import PathGenerator, GetPathGenerator
+from Utilities.PathGenerator import GetPathGenerator
+from Configuration.SimulationMode import SimulationMode
+from Simulation.Events.BusinessEvents.ScheduledBusinessProcessActivationEvent import ScheduledBusinessProcessActivationEvent
+from Simulation.BusinessEnvironment.BusinessProcess import BusinessProcess
+from Simulation.BusinessEnvironment.Company import Company
 
 '''Constructs business process related events'''
 class EventFactory(object):
@@ -67,6 +71,8 @@ class EventFactory(object):
             return self.generateUserActivityEvent(event)
         if isinstance(event, LatencyEvent):
             return self.generateLatencyEvent(event)
+        if isinstance(event, ScheduledBusinessProcessActivationEvent):
+            return self.generateBusinessProcessActivationEventFromSchedule(event.activationTime, event.company, event.businessProcess)
         if isinstance(event, BusinessProcessActivationEvent):
             self.history.record(event.t, ["BP_ACTIVATION", event.company.id])
             return self.generateActivityChangeEvent(event)
@@ -138,8 +144,13 @@ class EventFactory(object):
                 duration = event.t + event.spikeDuration - eventTime
                 newEvent.SetSpike(event.spike, duration)
         return newEvent
+    
+    def generateBusinessProcessActivationEventFromSchedule(self, eventTime : int, company : Company, businessProcess : BusinessProcess):
+        return BusinessProcessActivationEvent(eventTime, company, businessProcess)
         
-    def generateBusinessProcessActivationEvent(self, eventTime, company):
+    def generateBusinessProcessActivationEvent(self, currentTime, eventTime, company):
+        if GetConfig().simConfig.SIMULATION_MODE == SimulationMode.SCHEDULING:
+            return ScheduledBusinessProcessActivationEvent(currentTime, eventTime, company)
         return BusinessProcessActivationEvent(eventTime, company)
       
     def generateTrajectoryActivityEvent(self, currentTime, currentActivity : PathBasedActivity, event : ActivityChangeEvent):
@@ -157,7 +168,7 @@ class EventFactory(object):
         startingPosition = path[currentActivity.currentPosition]
         endPosition = path[currentActivity.currentPosition + 1]
         p1, p2 = GetPathGenerator().FindCommonBorder(startingPosition, endPosition)
-        transitionPoint = (p1[0] + p2[0] / 2.0), (p1[1] + p2[1] / 2.0)
+        transitionPoint = GetPathGenerator().CalculateTransitionPoint(p1, p2)
         startingPoint = startingPosition.cell.site[0], startingPosition.cell.site[1]
         if isinstance(event, AreaTransitionEvent):
             event : AreaTransitionEvent

@@ -9,7 +9,9 @@ from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Utilities.VoronoiDiagram.Cell import Cell
 from pygame import Surface
 from pygame.font import Font
-from memory_profiler import profile
+from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
+from Configuration.SimulationMode import SimulationMode
+from Utilities.ItemTypes.ReservationItem import ReservationItem
 
 '''Represents the service area in the simulation'''
 class ServiceArea(object):
@@ -36,7 +38,9 @@ class ServiceArea(object):
         publicSlice = PublicSlice(localNetworkFolderPath)
         
         self.localServiceNetwork = LocalServiceNetwork(self.id, localNetworkFolderPath, trafficCapacity, publicSlice)
-        self.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
+        if GetConfig().simConfig.SIMULATION_MODE == SimulationMode.SCHEDULING:
+            self.localServiceNetwork.ScheduleNetworkSlice(currentTime, publicSlice, ReservationItem(-1, -1, publicSlice, serviceRequirement))
+        self.localServiceNetwork.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
         self.ChangeActivity(currentTime, 1.0, 0)
     
     def ChangeActivity(self, currentTime, modifier, activityBoost = 0):
@@ -45,14 +49,12 @@ class ServiceArea(object):
         activeUsers = math.floor(self.activity * self.totalUsers)
         self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
-    def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
-        networkSlice.addServiceRequirement(self.id, serviceRequirement)
-        self.localServiceNetwork.ActivateNetworkSlice(currentTime, networkSlice)
-        
-    def DeactivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement):
-                networkSlice.removeServiceRequirement(self.id, serviceRequirement)
-                if not networkSlice.hasActiveRequirements(self.id):
-                    self.localServiceNetwork.DeactivateNetworkSlice(currentTime, networkSlice)
+    def GetLocalServiceNetwork(self):
+        return self.localServiceNetwork
+    
+    #def UpdateServiceNetwork(self, currentTime):
+    #    activeUsers = math.floor(self.activity * self.totalUsers)
+    #    self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
     def Terminate(self):
         self.activityHistory.terminate()

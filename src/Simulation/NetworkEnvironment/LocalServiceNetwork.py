@@ -1,14 +1,18 @@
 from Configuration.globals import GetConfig
 from DataOutput.TimeDataRecorder import TimeDataRecorder
-from Simulation.NetworkEnvironment.NetworkSliceManager import NetworkSliceManager
+from Simulation.NetworkEnvironment.SliceManagers.NetworkSliceManager import NetworkSliceManager
+from Simulation.NetworkEnvironment.SliceManagers.PriorityFirstManager import PriorityFirstManager
+from Simulation.NetworkEnvironment.SliceManagers.SchedulingSliceMangager import SchedulingSliceManager
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
 from Simulation.NetworkEnvironment.ActivationType import ActivationType
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
-from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
+from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement, DynamicServiceRequirement
 from Simulation.NetworkEnvironment.CapacityDemand import CapacityDemand
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from pathlib import Path
+from Configuration.SimulationMode import SimulationMode
+from Utilities.ItemTypes.ReservationItem import ReservationItem
 
 '''Represents the local service network providing services in a service area'''
 class LocalServiceNetwork(object):
@@ -34,7 +38,7 @@ class LocalServiceNetwork(object):
         self.spikeLatency = 0
         #Network slices operating in the network
         self.publicSlice = publicSlice
-        self.sliceManager = NetworkSliceManager()
+        self.sliceManager = self.InitializeSliceManager()
         # Inititalize recording of network capacity changes
         self.networkCapacityHistory = TimeDataRecorder(serviceAreaId, ["TotalCapacity", "MaxDataRate"])
         self.networkCapacityHistory.createFileOutput(folderPath, "CapacityHistory")
@@ -50,6 +54,14 @@ class LocalServiceNetwork(object):
         self.activeSliceViolations = dict()
         #Last update time
         self.lastUpdateTime = 0
+        
+    def InitializeSliceManager(self) -> NetworkSliceManager:
+        match GetConfig().simConfig.SIMULATION_MODE:
+            case SimulationMode.PRIORTY_FIRST:
+                return PriorityFirstManager(self.serviceAreaId)
+            case SimulationMode.SCHEDULING:
+                return SchedulingSliceManager(self.serviceAreaId)
+        raise ValueError("Invalid mode")
                 
     def UpdateActivity(self, currentTime, basicUserCount):
         self.basicUsers = basicUserCount
@@ -100,8 +112,17 @@ class LocalServiceNetwork(object):
             
     def GetCurrentDemand(self):
         privateDemand = self.sliceManager.GetPrivateDemand(self.serviceAreaId)
-        (minDemand, maxDemand) = self.sliceManager.GetPublicDemandRange(self.serviceAreaId, self.publicSlice)
+        (minDemand, maxDemand) = self.GetPublicDemandRange()
         return CapacityDemand(privateDemand, minDemand, maxDemand, self.totalTrafficCapacity)
+    
+    def GetPublicDemandRange(self):
+        serviceRequirements = list(self.publicSlice.GetServiceRequirement(self.serviceAreaId))
+        if (not len(serviceRequirements) == 1):
+            raise ValueError("Invalid public slice requirements")
+        serviceRequirement = serviceRequirements[0]
+        if (not isinstance(serviceRequirement, DynamicServiceRequirement)):
+            raise TypeError("Wrong network slice")
+        return serviceRequirement.defaultCapacityDemand, serviceRequirement.maxCapacityDemand
         
     def UpdateLatency(self, currentTime, modifier, spikeValue = 0):
         self.latency = self._defaultLatency * modifier + spikeValue
@@ -109,15 +130,35 @@ class LocalServiceNetwork(object):
             raise ValueError("Latency is going out of control")
         self.networkQualityHistory.record(currentTime, [self.latency])
         
-    def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice):
+    def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement : ServiceRequirement):
+        networkSlice.addServiceRequirement(self.serviceAreaId, serviceRequirement)
         self.sliceManager.addNetworkSlice(currentTime, networkSlice)
         self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.ACTIVATION])
         self.UpdateActivity(currentTime, self.basicUsers)
         
-    def DeactivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice):
-        self.sliceManager.removeNetworkSlice(networkSlice)
-        self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION])
-        self.UpdateActivity(currentTime, self.basicUsers)
+    def DeactivateNetworkSlice(self, currentTime : int, networkSlice : NetworkSlice, serviceRequirement : ServiceRequirement):
+        networkSlice.removeServiceRequirement(self.serviceAreaId, serviceRequirement)
+        if not networkSlice.hasActiveRequirements(self.serviceAreaId):
+            self.sliceManager.removeNetworkSlice(currentTime, networkSlice)
+            self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION])
+            self.UpdateActivity(currentTime, self.basicUsers)
+        
+    def CanScheduleNetworkSlice(self, activationTime : int, reservation : ReservationItem) -> bool:
+        if not isinstance(self.sliceManager, SchedulingSliceManager):
+            raise ValueError("Configuration mode not set to scheduling")
+        return self.sliceManager.CanSchedule(activationTime, reservation, self.totalTrafficCapacity)
+        
+    def ScheduleNetworkSlice(self, activationTime : int, networkSlice : NetworkSlice, reservation : ReservationItem):
+        if not isinstance(self.sliceManager, SchedulingSliceManager):
+            raise ValueError("Configuration mode not set to scheduling")
+        self.sliceManager.Schedule(activationTime, reservation, networkSlice)
+        
+    def TryFindNextPossibleAllocation(self, candidateTime : int, reservations : list[tuple[int, ServiceRequirement]]):
+        if not isinstance(self.sliceManager, SchedulingSliceManager):
+            raise ValueError("Configuration mode not set to scheduling")
+        return self.sliceManager.TryFindNextPossibleAllocation(candidateTime, reservations, self.totalTrafficCapacity)
+        
+        
         
     def terminate(self):
         self.networkCapacityHistory.terminate()
