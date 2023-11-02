@@ -5,6 +5,7 @@ from Configuration.SimulationMode import SimulationMode
 class SimConfig(BaseConfig):
     
     def __init__(self) -> None:
+        self._densityScale = 1
         # Defines a NxN sized grid used to generate the voronoi diagram
         self.GRIDSIZE = 9
         # Amount of weights used to define AreaTypes
@@ -14,11 +15,11 @@ class SimConfig(BaseConfig):
         #Kilometers spanning the unit range 0.0 to 1.0 (the full map)
         self.SCALE = 100
         #user density rural per sq km
-        self.UD_RURAL = 33
+        self.UD_RURAL = 33 / self._densityScale
         #user density urban per sq km
-        self.UD_URBAN = 3333
+        self.UD_URBAN = 3333 / self._densityScale
         #user density dense urban per sq km
-        self.UD_DENSE_URBAN = 8333
+        self.UD_DENSE_URBAN = 8333 / self._densityScale
         #Ratio of areas being of type 'dense urban'
         self.SHARE_DENSE = 0.1
         #Ratio of areas being of type 'rural'
@@ -28,15 +29,15 @@ class SimConfig(BaseConfig):
         self.DEFAULT_ACTIVITY_URBAN = 0.2
         self.DEFAULT_ACTIVITY_DENSE_URBAN = 0.1
         #Area traffic capacities by area type ( rural, urban, dense urban) in Mbps/km^2
-        self.TRAFFIC_CAPACITY_RURAL = 170
-        self.TRAFFIC_CAPACITY_URBAN = 17000
-        self.TRAFFIC_CAPACITY_DENSE_URBAN = 42000
+        self.TRAFFIC_CAPACITY_RURAL = 170 / self._densityScale
+        self.TRAFFIC_CAPACITY_URBAN = 17000 / self._densityScale
+        self.TRAFFIC_CAPACITY_DENSE_URBAN = 42000 / self._densityScale
         #Network demand posed by non-MBP network users in Mbps
         self.BASIC_DATA_RATE_DEMAND = 25
         #Network activity spike duration range
         self.MAX_NETWORK_ACTIVITY_SPIKE_DURATION = 1200
         #Defines number of active companies in the simulation
-        self.COMPANIES = 10000
+        self.COMPANIES = 5000
         #Defines the time factor (in seconds) to determine business activity durations
         self.BUSINESS_ACTIVITY_TIME_FACTOR = 600
         #Reliablity of public slices

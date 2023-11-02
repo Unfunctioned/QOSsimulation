@@ -8,7 +8,7 @@ class ServiceConfig(BaseConfig):
         # Default latency in ms
         self.LATENCY_DEFAULT = 10
         # Default service availability in percent
-        self.RELIABILITY_DEFAULT = 0.95
+        self.RELIABILITY_DEFAULT = 0.99
         
     def jsonable(self):
         return self.__dict__

@@ -77,3 +77,13 @@ class World(object):
     def drawInfo(self, surface : Surface, font : Font):
         for serviceArea in self.serviceAreas:
             serviceArea.drawInfo(surface, font)
+            
+    def printInfo(self):
+        areaSize = 0.0
+        totalUsers = 0
+        for serviceArea in self.serviceAreas:
+            areaSize += serviceArea.areaSize
+            totalUsers += serviceArea.totalUsers
+        print("Size: {size} km^2".format(size = areaSize))
+        print("Users: {users}".format(users = totalUsers + len(self.companies)))
+        print("Total Time: {time}".format(time = self.totalTime))

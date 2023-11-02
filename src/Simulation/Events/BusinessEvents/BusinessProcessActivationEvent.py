@@ -13,8 +13,6 @@ class BusinessProcessActivationEvent(BusinessEvent):
         self.generateFollowUpEvent = True
         
     def trigger(self):
-        if self.company.id == 1245:
-            print("Take a break")
         self.businessProcess = self.company.ActivateBusinessProcess(self.t, self.businessProcess)
         if not self.businessProcess.activityHistory is None:
             self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.PROCESS_ACTIVATION.name])

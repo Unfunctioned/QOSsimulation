@@ -15,7 +15,7 @@ from Simulation.World import World
 from memory_profiler import profile
 
 MAX_SPIKE_DURATIONS = [1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
-WORLD_COUNT = 10
+WORLD_COUNT = 5
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SNAPSHOTS = []
     

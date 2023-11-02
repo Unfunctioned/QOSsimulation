@@ -20,6 +20,7 @@ class UserActivityEvent(Event):
     def __init__(self, eventTime, area : ServiceArea) -> None:
         super().__init__(eventTime)
         self.area = area
+        #self.modifier = GetConfig().randoms.activitySimulation.random()
         self.modifier = 0.9 + GetConfig().randoms.activitySimulation.random()*0.2
         self.generateFollowUpEvent = True        
         

@@ -4,6 +4,8 @@ from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement, DynamicServiceRequirement
 from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
+from Configuration.SimulationMode import SimulationMode
+from Configuration.globals import GetConfig
 
 '''Network slice manager prioritizing network slices by slice activation time'''
 class PriorityFirstManager(NetworkSliceManager):
@@ -14,7 +16,7 @@ class PriorityFirstManager(NetworkSliceManager):
         self.keysToSlice = dict()
         self.sliceToKey = dict()
         
-    def addNetworkSlice(self, activationTime: int, networkSlice: NetworkSlice):
+    def addNetworkSlice(self, currentTime : int, activationTime: int, networkSlice: NetworkSlice):
         if not activationTime in self.activationKeys.queue:
             self.activationKeys.put(activationTime)
         if networkSlice in self.sliceToKey:
@@ -41,10 +43,10 @@ class PriorityFirstManager(NetworkSliceManager):
     
     def GetPrivateDemand(self, currentTime: int):
         demand = 0
-        for i in range(1, len(self.activationKeys.queue)):
+        for i in range(0, len(self.activationKeys.queue)):
             key = self.activationKeys.queue[i]
             if key > currentTime:
-                continue
+                raise ValueError("Network slice was activated in the future")
             networkSlices = self.keysToSlice[key]
             networkSlice : NetworkSlice
             for networkSlice in networkSlices:
@@ -59,6 +61,8 @@ class PriorityFirstManager(NetworkSliceManager):
         return demand
     
     def FindQoSViolations(self, currentTime: int, latency, capacityDemand: CapacityDemand):
+        #if len(self.sliceToKey) > 1:
+        #    print("Take a break")
         violations = {}
         adjustedDemand = CapacityDemand(0, capacityDemand.publicMinimum, 
                                         capacityDemand.publicMaximum, capacityDemand.maximumCapacity)
@@ -66,8 +70,6 @@ class PriorityFirstManager(NetworkSliceManager):
         activationHistory = self.activationKeys.queue.copy()
         activationHistory.reverse()
         for key in activationHistory:
-            if key > currentTime:
-                continue
             networkSlices = self.keysToSlice[key]
             networkSlice : NetworkSlice
             for networkSlice in networkSlices:

@@ -63,9 +63,9 @@ class LocalServiceNetwork(object):
                 return SchedulingSliceManager(self.serviceAreaId)
         raise ValueError("Invalid mode")
                 
-    def UpdateActivity(self, currentTime, basicUserCount):
+    def UpdateActivity(self, currentTime : int, basicUserCount):
         self.basicUsers = basicUserCount
-        capacityDemand = self.GetCurrentDemand()
+        capacityDemand = self.GetCurrentDemand(currentTime)
         serviceRequirements = self.publicSlice.GetServiceAreaRequirements(self.serviceAreaId)
         if not len(serviceRequirements) == 1:
             raise ValueError("Invalid requirements")
@@ -73,7 +73,6 @@ class LocalServiceNetwork(object):
         requirement.UpdateUsers(basicUserCount)
 
         #Baseline QoS Validation
-        violations : dict[NetworkSlice, list[tuple[ServiceRequirement, ViolationStatusType]]]
         violations, adjustedDemand = self.sliceManager.FindQoSViolations(self.serviceAreaId, self.latency, capacityDemand)
         self.UpdateRecoveredQoSRequirements(currentTime, violations)
         self.UpdateViolatedQoSRequirements(currentTime, violations)
@@ -110,8 +109,8 @@ class LocalServiceNetwork(object):
             violationType = ViolationStatusType.CAPACITY if hasCapacityViolation else ViolationStatusType.LATENCY
             networkSlice.UpdateViolationStatus(currentTime, self.serviceAreaId, violationType)
             
-    def GetCurrentDemand(self):
-        privateDemand = self.sliceManager.GetPrivateDemand(self.serviceAreaId)
+    def GetCurrentDemand(self, currentTime : int):
+        privateDemand = self.sliceManager.GetPrivateDemand(currentTime)
         (minDemand, maxDemand) = self.GetPublicDemandRange()
         return CapacityDemand(privateDemand, minDemand, maxDemand, self.totalTrafficCapacity)
     
@@ -132,7 +131,7 @@ class LocalServiceNetwork(object):
         
     def ActivateNetworkSlice(self, currentTime, networkSlice : NetworkSlice, serviceRequirement : ServiceRequirement):
         networkSlice.addServiceRequirement(self.serviceAreaId, serviceRequirement)
-        self.sliceManager.addNetworkSlice(currentTime, networkSlice)
+        self.sliceManager.addNetworkSlice(currentTime, currentTime, networkSlice)
         self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.ACTIVATION])
         self.UpdateActivity(currentTime, self.basicUsers)
         

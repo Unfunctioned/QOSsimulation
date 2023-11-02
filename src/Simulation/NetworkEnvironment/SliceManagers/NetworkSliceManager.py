@@ -2,6 +2,8 @@ from queue import PriorityQueue
 from Simulation.NetworkEnvironment.PublicSlice import PublicSlice
 from Simulation.NetworkEnvironment.NetworkSlice import NetworkSlice
 from Simulation.NetworkEnvironment.CapacityDemand import CapacityDemand
+from Simulation.NetworkEnvironment.ServiceRequirements.ServiceRequirement import ServiceRequirement
+from Simulation.NetworkEnvironment.ViolationStatusType import ViolationStatusType
 
 '''Class used to manage the active network slices in a local service network'''
 class NetworkSliceManager(object):
@@ -19,7 +21,7 @@ class NetworkSliceManager(object):
     def GetPrivateDemand(self, currentTime : int):
         raise AttributeError("Method needs to be overridden")
     
-    def FindQoSViolations(self, currentTime : int, latency, capacityDemand : CapacityDemand):
+    def FindQoSViolations(self, currentTime : int, latency, capacityDemand : CapacityDemand) -> tuple[dict[NetworkSlice, list[tuple[ServiceRequirement, ViolationStatusType]]], CapacityDemand]:
         raise AttributeError("Method needs to be overridden")
                 
             

@@ -28,11 +28,7 @@ class ScheduledBusinessProcessActivationEvent(BusinessProcessActivationEvent):
         else:
             time = GetSchedulingManager().FindFirstAvailability(self.activationTime, reservations)
             GetSchedulingManager().ScheduleReservations(time, reservations, self.company.networkSlice)
-            #raise Exception("Allocation failed")
-        #print("Take a break")
-        #if not self.businessProcess.activityHistory is None:
-        #    self.businessProcess.activityHistory.record(self.t, [self.businessProcess.id, BusinessEventType.PROCESS_ACTIVATION.name])
-        
+
     def CalculateReservations(self) -> dict[ServiceArea, list[ReservationItem]]:
         reservations = dict()
         activationTime = self.activationTime

@@ -28,8 +28,9 @@ class Window(object):
             
             #Check if simulation is complete
             if(not self.world.isRunning(self.showPutput)):
-                isRunning = False            
+                isRunning = False        
         self.world.Terminate()
+        self.world.printInfo()  
         pygame.quit()
         
     def handleEvents(self):

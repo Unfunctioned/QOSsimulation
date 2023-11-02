@@ -34,7 +34,6 @@ class EventFactory(object):
             self.nextLatencySpikeTime[area.localServiceNetwork] = spikeTime
             self.nextUserActivitySpikeTime[area] = activitySpikeTime
 
-    
     def UpdateNextLatencySpikeTime(self, network : LocalServiceNetwork):
         config = GetConfig().eventConfig.latencySpikeDelayRange
         self.nextLatencySpikeTime[network] += GetConfig().randoms.latencyDelay.randint(config[0], config[1])
@@ -43,7 +42,6 @@ class EventFactory(object):
         config = GetConfig().eventConfig.userActivitypikeDelayRange
         self.nextUserActivitySpikeTime[area] += GetConfig().randoms.activityDelay.randint(config[0], config[1])
 
-    
     def generateActivityChangeEvent(self, event : BusinessEvent, addedTime = 0):
         currentTime = event.t
         businessProcess = event.businessProcess

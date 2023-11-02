@@ -51,10 +51,6 @@ class ServiceArea(object):
         
     def GetLocalServiceNetwork(self):
         return self.localServiceNetwork
-    
-    #def UpdateServiceNetwork(self, currentTime):
-    #    activeUsers = math.floor(self.activity * self.totalUsers)
-    #    self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)
         
     def Terminate(self):
         self.activityHistory.terminate()

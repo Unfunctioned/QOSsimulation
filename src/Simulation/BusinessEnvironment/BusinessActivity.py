@@ -19,7 +19,6 @@ class BusinessActivity(object):
         self.executionHistory = executionHistory
         self.totalTime = -1
         self.activityType = None
-        self.activated = False
         
     def getTypeName(self):
         return self.activityType
@@ -27,7 +26,6 @@ class BusinessActivity(object):
     def activate(self, currentTime):
         self.activationTime = currentTime
         self.executionHistory.record(currentTime, [self.processId, "ACTIVATION", self.getTypeName(), -1, "N/A", -1, -1])
-        self.activated = True
     
     def deactivate(self, currentTime):
         self.totalTime = currentTime - self.activationTime

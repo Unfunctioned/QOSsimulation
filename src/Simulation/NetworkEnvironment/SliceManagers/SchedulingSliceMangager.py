@@ -31,27 +31,19 @@ class SchedulingSliceManager(NetworkSliceManager):
         self.sliceToReservation : dict[NetworkSlice, set[ReservationItem]]
         self.sliceToReservation = dict()
         
-        #self.keysToSlice : dict[int, set[NetworkSlice]]
-        #self.keysToSlice = dict()
-        #self.sliceToKey : dict[NetworkSlice, set[int]]
-        #self.sliceToKey = dict()
-        
-    def addNetworkSlice(self, activationTime: int, networkSlice: NetworkSlice):
-        if networkSlice.companyId == 1245 and activationTime == 655:
-            print("Take a break")
+    def addNetworkSlice(self, _ : int, activationTime: int, networkSlice: NetworkSlice):
         self._TryAddActivationTime(activationTime)
         self._TryAddActiveSlice(activationTime, networkSlice)
         reservations = self.sliceToReservation[networkSlice]
         for reservation in reservations:
             networkSlice.addServiceRequirement(self.serviceAreaId, reservation.serviceRequirement)
         
-        #if not activationTime in self.keysToSlice:
-        #    self.keysToSlice[activationTime] = set()
-        #self.keysToSlice[activationTime].add(networkSlice)
-        #if not networkSlice in self.sliceToKey:
-        #    self.sliceToKey[networkSlice] = set()
-        #self.sliceToKey[networkSlice].add(activationTime)
-        
+    def _TryAddActivationTime(self, activationTime : int):
+        if not activationTime in self.activationKeys.queue:
+            self.activationKeys.put(activationTime)
+            return True
+        return False
+
     def _TryAddActiveSlice(self, activationTime : int, networkSlice : NetworkSlice):
         if not activationTime in self.activeSlices:
             self.activeSlices[networkSlice] = set()
@@ -93,12 +85,12 @@ class SchedulingSliceManager(NetworkSliceManager):
             raise ValueError("Given Network slice could not be found")
         return self.sliceToReservation[networkSlice]
     
-    def _getReservations(self, key, networkSlice : NetworkSlice):
-        reservations = list()
-        for reservation in self.keysToReservation[key]:
-            if reservation.networkSlice == networkSlice:
-                reservations.append(reservation)
-        return reservations
+    #def _getReservations(self, key, networkSlice : NetworkSlice):
+    #    reservations = list()
+    #    for reservation in self.keysToReservation[key]:
+    #        if reservation.networkSlice == networkSlice:
+    #            reservations.append(reservation)
+    #    return reservations
     
     def GetPrivateDemand(self, currentTime: int):
         demand = 0
@@ -124,41 +116,115 @@ class SchedulingSliceManager(NetworkSliceManager):
                         demand += serviceRequirement.defaultCapacityDemand
         return demand
     
-    def FindQoSViolations(self, currentTime: int, latency, capacityDemand: CapacityDemand):
+    def CheckForQoSViolation(self, serviceRequirement : ServiceRequirement, excessDemand : int, latency : int):
+        if excessDemand > 0:
+            violationType = ViolationStatusType.CAPACITY
+            if excessDemand < serviceRequirement.defaultCapacityDemand:
+                violationType = ViolationStatusType.PARTIAL_CAPACITY
+            return violationType
+                #adjustedDemand.private += serviceRequirement.defaultCapacityDemand - excessDemand
+                #excessDemand -= serviceRequirement.defaultCapacityDemand
+                #sliceViolations.append((serviceRequirement, violationType))
+                #continue
+        if serviceRequirement.latency is None:
+            return None
+        if serviceRequirement.latency < latency:
+            return ViolationStatusType.LATENCY
+            #sliceViolations.append((serviceRequirement, ViolationStatusType.LATENCY))
+            #adjustedDemand.private += serviceRequirement.defaultCapacityDemand
+    
+    def UpdateViolations(self, sliceViolations: list, excessDemand : CapacityDemand, adjustedDemand : CapacityDemand,
+                         latency : int, serviceRequirement : ServiceRequirement):
+        violationType = self.CheckForQoSViolation(serviceRequirement, excessDemand, latency)
+        if violationType is None:
+            return sliceViolations, excessDemand, adjustedDemand
+        if violationType == ViolationStatusType.CAPACITY or violationType == ViolationStatusType.PARTIAL_CAPACITY:
+            if violationType == ViolationStatusType.PARTIAL_CAPACITY:
+                adjustedDemand.private += serviceRequirement.defaultCapacityDemand - excessDemand
+            excessDemand -= serviceRequirement.defaultCapacityDemand
+            sliceViolations.append((serviceRequirement, violationType))
+            if violationType == ViolationStatusType.LATENCY:
+                sliceViolations.append((serviceRequirement, violationType))
+                adjustedDemand.private += serviceRequirement.defaultCapacityDemand
+        return sliceViolations, excessDemand, adjustedDemand
+
+    def FindQoSViolations(self, currentTime: int, latency : int, capacityDemand: CapacityDemand):
         violations = {}
         adjustedDemand = CapacityDemand(0, capacityDemand.publicMinimum, 
                                         capacityDemand.publicMaximum, capacityDemand.maximumCapacity)
         excessDemand = max(0, capacityDemand.private + capacityDemand.publicMinimum - capacityDemand.maximumCapacity)
-        activationHistory = self.activationKeys.queue.copy()
-        activationHistory.reverse()
-        for key in activationHistory:
-            if key > currentTime or not key in self.keysToReservation:
-                continue
-            reservations = self.keysToReservation[key]
-            for reservation in reservations:
-                networkSlice = reservation.networkSlice
-                if not networkSlice in self.activeSlices:
-                    continue
-                serviceRequirements = networkSlice.GetServiceRequirement(self.serviceAreaId)
-                sliceViolations = []
-                serviceRequirement : ServiceRequirement
-                for serviceRequirement in serviceRequirements:
-                    if excessDemand > 0:
-                        violationType = ViolationStatusType.CAPACITY
-                        if excessDemand < serviceRequirement.defaultCapacityDemand:
-                            violationType = ViolationStatusType.PARTIAL_CAPACITY
-                            adjustedDemand.private += serviceRequirement.defaultCapacityDemand - excessDemand
-                        excessDemand -= serviceRequirement.defaultCapacityDemand
-                        sliceViolations.append((serviceRequirement, violationType))
-                        continue
-                    if serviceRequirement.latency is None:
-                        continue
-                    if serviceRequirement.latency < latency:
-                        sliceViolations.append((serviceRequirement, ViolationStatusType.LATENCY))
-                        adjustedDemand.private += serviceRequirement.defaultCapacityDemand
+        
+        activeReservations, unreservedActiveSlices = self.GetDemandPriorities()
+        #if len(activeReservations) > 1:
+        #    print(activeReservations)
+        #   print(unreservedActiveSlices)
+        #   print("Take a break")
+          
+        for item in unreservedActiveSlices:  
+            networkSlice, _ = item
+            serviceRequirements = networkSlice.GetServiceRequirement(self.serviceAreaId)
+            sliceViolations = []
+            for serviceRequirement in serviceRequirements:
+                sliceViolations, excessDemand, adjustedDemand = self.UpdateViolations(
+                    sliceViolations, excessDemand, adjustedDemand, latency, serviceRequirement)
                 if(len(sliceViolations) > 0):
                     violations[networkSlice] = sliceViolations
+                      
+        for activeReservation in activeReservations:
+            if not activeReservation.networkSlice in self.activeSlices:
+                raise ValueError("Netork slice is not active")
+            serviceRequirement = activeReservation.serviceRequirement
+            sliceViolations, excessDemand, adjustedDemand = self.UpdateViolations(
+                [], excessDemand, adjustedDemand, latency, serviceRequirement)
+            if(len(sliceViolations) > 0):
+                violations[activeReservation.networkSlice] = sliceViolations
+            
         return violations, adjustedDemand
+        
+        #activationHistory = self.activationKeys.queue.copy()
+        #activationHistory.reverse()
+        #for key in activationHistory:
+        #    if key > currentTime or not key in self.keysToReservation:
+        #        continue
+        #    reservations = self.keysToReservation[key]
+        #    for reservation in reservations:
+        #        networkSlice = reservation.networkSlice
+        #        if not networkSlice in self.activeSlices:
+        #            continue
+        #        serviceRequirements = networkSlice.GetServiceRequirement(self.serviceAreaId)
+        #        sliceViolations = []
+        #        serviceRequirement : ServiceRequirement
+        #        for serviceRequirement in serviceRequirements:
+        #            if excessDemand > 0:
+        #                violationType = ViolationStatusType.CAPACITY
+        #                if excessDemand < serviceRequirement.defaultCapacityDemand:
+        #                    violationType = ViolationStatusType.PARTIAL_CAPACITY
+        #                    adjustedDemand.private += serviceRequirement.defaultCapacityDemand - excessDemand
+        #                excessDemand -= serviceRequirement.defaultCapacityDemand
+        #                sliceViolations.append((serviceRequirement, violationType))
+        #                continue
+        #            if serviceRequirement.latency is None:
+        #                continue
+        #            if serviceRequirement.latency < latency:
+        #                sliceViolations.append((serviceRequirement, ViolationStatusType.LATENCY))
+        #                adjustedDemand.private += serviceRequirement.defaultCapacityDemand
+        #        if(len(sliceViolations) > 0):
+        #            violations[networkSlice] = sliceViolations
+        #return violations, adjustedDemand
+    
+    def GetDemandPriorities(self) -> tuple[list[ReservationItem], list[tuple[NetworkSlice, int]]]:
+        reservations = list()
+        sliceActivations = list()
+        for networkSlice in self.activeSlices:
+            if networkSlice in self.sliceToReservation:
+                reservations.extend(self.sliceToReservation[networkSlice])
+            else:
+                if len(self.activeSlices[networkSlice]) > 1:
+                    raise ValueError("Network slice has more than one activation key")
+                sliceActivations.append((networkSlice, list(self.activeSlices[networkSlice])[0]))
+        reservations.sort(key=lambda x : x.activationTime, reverse=True)
+        sliceActivations.sort(key=lambda x : x[1], reverse=True)
+        return reservations, sliceActivations
     
     def CanSchedule(self, activationTime : int, reservation : ReservationItem, totalCapacity : int) -> bool:
         demand = reservation.GetDemand()
@@ -186,8 +252,6 @@ class SchedulingSliceManager(NetworkSliceManager):
             self.allocationQueue.Put(CapacityItem(activationTime + reservation.duration, -requirement.defaultCapacityDemand, networkSlice))
       
     def AddReservation(self, reservationItem : ReservationItem):
-        if reservationItem.networkSlice.companyId == 1245 and reservationItem.activationTime == 655:
-            print("Take a break")
         activationTime = reservationItem.activationTime
         self._TryAddActivationTime(activationTime)
         self._MapTimeToReservation(activationTime, reservationItem)
@@ -195,12 +259,6 @@ class SchedulingSliceManager(NetworkSliceManager):
         #if not networkSlice in self.sliceToKey:
         #    self.sliceToKey[networkSlice] = set()
         #self.sliceToKey[networkSlice].add(activationTime)
-        
-    def _TryAddActivationTime(self, activationTime : int):
-        if not activationTime in self.activationKeys.queue:
-            self.activationKeys.put(activationTime)
-            return True
-        return False
     
     def _MapTimeToReservation(self, activationTime : int, reservation : ReservationItem):
         if not activationTime in self.keysToReservation:
