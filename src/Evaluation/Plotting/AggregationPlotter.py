@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pandas
 from Configuration.globals import GetConfig
 import numpy as np
+from Evaluation.DataLoader import DataLoader
+
 '''Used to create plots based on aggregated data'''
 class AggregationPlotter:
     
@@ -103,3 +105,16 @@ class AggregationPlotter:
         fig1.add_subplot(ax1)
         
         fig1.savefig(GetConfig().filePaths.plotPath.joinpath('AggregatedConfigurations.png'))
+        
+    def plotSuccessRateAsBoxPlot():
+        data = DataLoader.loadLatencyResults()
+        fig1 = plt.figure()
+        ax1 = fig1.add_subplot(1,1,1)
+        seriesData = []
+        for i in data['MAX_LATENCY_SPIKE_DURATION'].unique():
+            seriesData.append(data.loc[data['MAX_LATENCY_SPIKE_DURATION'] == i]['SUCCESS_RATE'])
+
+        ax1.boxplot(seriesData)
+        ax1.set_xticklabels(data['MAX_LATENCY_SPIKE_DURATION'].unique())
+        fig1.add_subplot(ax1)
+        fig1.savefig(GetConfig().filePaths.plotPath.joinpath('SuccessRatesBoxPlot.png'))
