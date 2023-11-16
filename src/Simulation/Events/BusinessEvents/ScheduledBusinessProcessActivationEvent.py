@@ -22,12 +22,12 @@ class ScheduledBusinessProcessActivationEvent(BusinessProcessActivationEvent):
     def trigger(self):
         reservations : dict[ServiceArea, list[ReservationItem]]
         reservations = self.CalculateReservations()
-        canSchedule, (failedArea, reservation) = GetSchedulingManager().CanScheduleReservations(self.activationTime, reservations)
+        canSchedule, (failedArea, reservation) = GetSchedulingManager().CanScheduleReservations(reservations)
         if canSchedule:
             GetSchedulingManager().ScheduleReservations(self.activationTime, reservations, self.company.networkSlice)
         else:
-            time = GetSchedulingManager().FindFirstAvailability(self.activationTime, reservations)
-            GetSchedulingManager().ScheduleReservations(time, reservations, self.company.networkSlice)
+            time, updatedReservations = GetSchedulingManager().FindFirstAvailability(self.activationTime, reservations)
+            GetSchedulingManager().ScheduleReservations(time, updatedReservations, self.company.networkSlice)
 
     def CalculateReservations(self) -> dict[ServiceArea, list[ReservationItem]]:
         reservations = dict()

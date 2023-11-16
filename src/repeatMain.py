@@ -15,7 +15,7 @@ from Simulation.World import World
 from memory_profiler import profile
 
 MAX_SPIKE_DURATIONS = [1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
-WORLD_COUNT = 3
+WORLD_COUNT = 10
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SNAPSHOTS = []
     
@@ -123,3 +123,4 @@ if __name__ == "__main__":
     AggregationPlotter.plotRelativeActivityFailureDistribution(aggregator.filePaths['ABSOlUTE_ACTIVITY_FAILS'])
     AggregationPlotter.plotRelativeActivityFailureTypeDistribution(aggregator.filePaths['ABSOLUTE_ACTIVITY_TYPE_FAILS'])
     AggregationPlotter.plotConfiguration(aggregator.filePaths['CONFIGURATION'])
+    AggregationPlotter.plotSuccessRateAsBoxPlot()

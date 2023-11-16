@@ -1,5 +1,6 @@
 from pathlib import Path
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import pandas
 from Configuration.globals import GetConfig
 import numpy as np
@@ -108,8 +109,13 @@ class AggregationPlotter:
         
     def plotSuccessRateAsBoxPlot():
         data = DataLoader.loadLatencyResults()
+        data['SUCCESS_RATE'] = data['SUCCESS_RATE'].apply(lambda x : x * 100)
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(1,1,1)
+        ax1.set_title("MBP Activity Success Rate by Spike Duration Range")
+        ax1.yaxis.set_major_formatter(mtick.PercentFormatter())
+        ax1.set_ylabel("Success Rate (%)")
+        ax1.set_xlabel("Maximum Spike Duration Range")
         seriesData = []
         for i in data['MAX_LATENCY_SPIKE_DURATION'].unique():
             seriesData.append(data.loc[data['MAX_LATENCY_SPIKE_DURATION'] == i]['SUCCESS_RATE'])

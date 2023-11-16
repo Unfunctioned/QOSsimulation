@@ -47,7 +47,7 @@ class SimConfig(BaseConfig):
         self.DEFAULT_LATENCY = 9.5
         
         #Set simulation mode
-        self.SIMULATION_MODE = SimulationMode.SCHEDULING
+        self.SIMULATION_MODE = SimulationMode.PRIORTY_FIRST
         
     def jsonable(self):
         jsonDict = self.__dict__.copy()

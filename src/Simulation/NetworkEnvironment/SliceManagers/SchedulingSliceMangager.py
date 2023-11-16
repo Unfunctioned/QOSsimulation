@@ -226,17 +226,17 @@ class SchedulingSliceManager(NetworkSliceManager):
         sliceActivations.sort(key=lambda x : x[1], reverse=True)
         return reservations, sliceActivations
     
-    def CanSchedule(self, activationTime : int, reservation : ReservationItem, totalCapacity : int) -> bool:
+    def CanSchedule(self, reservation : ReservationItem, totalCapacity : int) -> bool:
         demand = reservation.GetDemand()
         duration = 0
-        time = activationTime
+        time = reservation.activationTime
         for item in iter(self.allocationQueue):
-            if item.t < activationTime:
+            if item.t < reservation.activationTime:
                 demand += item.capacityChange
             else:
                 if demand < totalCapacity:
                     duration += item.t - time
-                    if duration >= reservation.activationTime:
+                    if duration >= reservation.duration:
                         break
                 else:
                     return False

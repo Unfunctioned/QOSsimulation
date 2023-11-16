@@ -142,10 +142,10 @@ class LocalServiceNetwork(object):
             self.sliceActivationHistory.record(currentTime, [networkSlice.companyId, ActivationType.DEACTIVATION])
             self.UpdateActivity(currentTime, self.basicUsers)
         
-    def CanScheduleNetworkSlice(self, activationTime : int, reservation : ReservationItem) -> bool:
+    def CanScheduleNetworkSlice(self, reservation : ReservationItem) -> bool:
         if not isinstance(self.sliceManager, SchedulingSliceManager):
             raise ValueError("Configuration mode not set to scheduling")
-        return self.sliceManager.CanSchedule(activationTime, reservation, self.totalTrafficCapacity)
+        return self.sliceManager.CanSchedule(reservation, self.totalTrafficCapacity)
         
     def ScheduleNetworkSlice(self, activationTime : int, networkSlice : NetworkSlice, reservation : ReservationItem):
         if not isinstance(self.sliceManager, SchedulingSliceManager):

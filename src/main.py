@@ -5,8 +5,10 @@ from Configuration.globals import GetConfig
 from Configuration.ConfigurationEncoder import ConfigurationEncoder
 from pathlib import Path
 from Simulation.WorldGenerator import WorldGenerator
+import time
 
 def main():
+    startTime = time.time()
     jsonConfig = json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4)
     with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
         configFile.write(jsonConfig)
@@ -18,6 +20,7 @@ def main():
     analyzer.analyze()
     analyzer.printResults()
     analyzer.writeData()
+    print("Duration: " + str(time.time()-startTime) + "s")
 
 if __name__ == "__main__":
     main()
