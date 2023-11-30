@@ -14,7 +14,7 @@ from Evaluation.Plotting.AggregationPlotter import AggregationPlotter
 from Simulation.World import World
 from memory_profiler import profile
 
-MAX_SPIKE_DURATIONS = [1,2,3,4,5,6,7,8,9,10,12,14,16,20,25,30]
+MBP_USER_COUNT = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
 WORLD_COUNT = 10
 SEEDS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SNAPSHOTS = []
@@ -50,36 +50,37 @@ def initWorldConfig(worldId : int, seedValue : int, config : Config = GetConfig(
     config.setSeeds(seeds)
     globals.UpdateConfig(config)
     
-def initLatencyConfig(caseID : tuple[int,int,int]):
+def initCompanyCount(caseID : tuple[int,int,int]):
     if caseID[2] > 0:
         initWorldConfig(caseID[0], caseID[1], Config(caseID[0], caseID[1]))
     config = GetConfig()
     if not config.randoms.seeds[0] == caseID[0]:
         raise ValueError("Invalid seed configuration")
-    config.eventConfig.latencySpikeDurationRange = (1, MAX_SPIKE_DURATIONS[caseID[2]])
+    config.simConfig.COMPANIES = MBP_USER_COUNT[caseID[2]]
     globals.UpdateConfig(config)
     
-def iterateCases(durations, worldId, seedValue):
+def iterateCases(companyCounts, worldId, seedValue):
     initWorldConfig(worldId, seedValue)
     latencyRecorder = initLatencyRecording(worldId)
     failureRecorder = initFailureRecording(worldId)
     networkQualityRecorder = initNetworkQualityRecording(worldId)
-    for i in range(len(durations)):
+    for i in range(len(companyCounts)):
         startTime = time.time()
-        runWorld((worldId, seedValue, i), [latencyRecorder, failureRecorder, networkQualityRecorder], durations[i])
+        runWorld((worldId, seedValue, i), [latencyRecorder, failureRecorder, networkQualityRecorder], companyCounts[i])
         print("Executed World #" + str(worldId) + " Seed#" + str(seedValue) + " Case#" + str(i) + ": " + str(time.time()-startTime) + "s")
     
     latencyRecorder.terminate()
     failureRecorder.terminate()
 
-def runWorld(caseID : tuple[int,int,int], recorders : list[BasicDataRecorder], spikeDuration : int):
-        initLatencyConfig(caseID)
+def runWorld(caseID : tuple[int,int,int], recorders : list[BasicDataRecorder], CompanyCount : int):
+        initCompanyCount(caseID)
         with Path.joinpath(GetConfig().filePaths.simulationPath, "Configuration.json").open('w') as configFile:
             configFile.write(json.dumps(GetConfig(), cls=ConfigurationEncoder, indent=4))
         generator = WorldGenerator()
         world = generator.get_world()
+        assert len(world.companies) == CompanyCount
         simulate(world, caseID[2])
-        analyzeWorld(recorders, world.GetSimulationTime(), spikeDuration, caseID)
+        analyzeWorld(recorders, world.GetSimulationTime(), CompanyCount, caseID)
         
 def simulate(world : World, caseNo : int):
     window = Window(world)
@@ -104,7 +105,7 @@ def analyzeWorld(recorders : list[BasicDataRecorder], totalTime, spikeDuration, 
     
 def iterateSeeds(worldId):
     for seed in range(WORLD_COUNT):
-        iterateCases(MAX_SPIKE_DURATIONS, worldId, seed)
+        iterateCases(MBP_USER_COUNT, worldId, seed)
         
     
 def main():
@@ -124,4 +125,3 @@ if __name__ == "__main__":
     AggregationPlotter.plotRelativeActivityFailureTypeDistribution(aggregator.filePaths['ABSOLUTE_ACTIVITY_TYPE_FAILS'])
     AggregationPlotter.plotConfiguration(aggregator.filePaths['CONFIGURATION'])
     AggregationPlotter.plotSuccessRateAsBoxPlot()
-    AggregationPlotter.plotTimeOverhead()

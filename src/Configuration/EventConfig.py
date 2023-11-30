@@ -11,7 +11,7 @@ class EventConfig(BaseConfig):
         self.userActivitySpikeDurationRange = (900, 1800)
         self.userActivitypikeDelayRange = (0, 1800)
         #Probability that the latency will be stable at the 10 ms 
-        self.LATENCY_PERCENTAGE_STABLE = 0.9
+        #self.LATENCY_PERCENTAGE_STABLE = 0.9
         
     def jsonable(self):
         return self.__dict__

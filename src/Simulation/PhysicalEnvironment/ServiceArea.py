@@ -43,8 +43,8 @@ class ServiceArea(object):
         self.localServiceNetwork.ActivateNetworkSlice(currentTime, publicSlice, serviceRequirement)
         self.ChangeActivity(currentTime, 1.0, 0)
     
-    def ChangeActivity(self, currentTime, modifier, activityBoost = 0):
-        self.activity = min(self.default_activity * modifier + activityBoost, 1.0)
+    def ChangeActivity(self, currentTime, modifier, spikeActivity = 0):
+        self.activity = max(min(self.default_activity * modifier + spikeActivity, 1.0), 0.0)
         self.activityHistory.record(currentTime, [self.activity])
         activeUsers = math.floor(self.activity * self.totalUsers)
         self.localServiceNetwork.UpdateActivity(currentTime, activeUsers)

@@ -44,7 +44,7 @@ class SimConfig(BaseConfig):
         self.PUBLIC_SLICE_RELIABILITY = 0.99
         
         #Default latency for local service networks
-        self.DEFAULT_LATENCY = 9.5
+        self.DEFAULT_LATENCY = 4
         
         #Set simulation mode
         self.SIMULATION_MODE = SimulationMode.PRIORTY_FIRST

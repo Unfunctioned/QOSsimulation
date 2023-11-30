@@ -6,7 +6,7 @@ class ServiceConfig(BaseConfig):
         # Data rate default in mbps
         self.CAPACITY_DEFAULT = 10
         # Default latency in ms
-        self.LATENCY_DEFAULT = 10
+        self.LATENCY_DEFAULT = 5
         # Default service availability in percent
         self.RELIABILITY_DEFAULT = 0.99
         

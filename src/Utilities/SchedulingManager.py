@@ -10,16 +10,16 @@ class ExceptionCatcher(object):
     
     def __init__(self) -> None:
         self.lock = threading.Lock()
-        self._exception = None
+        self._exceptions = []
         
     def SetException(self, e : Exception):
         with self.lock:
-            self._exception = e
+            self._exceptions.append(e)
     
     def CheckForException(self):
         with self.lock:
-            if not self._exception is None:
-                raise self._exception
+            if len(self._exceptions) > 0:
+                raise self._exceptions[0]
         
     
 

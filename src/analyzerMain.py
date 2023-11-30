@@ -1,7 +1,7 @@
 from Evaluation.Analyzer import Analyzer
 
 def main():
-    analyzer = Analyzer('D:\Repositories\QOSsimulation\Simulations\World#0#3\Run-19-10-2023-00-01-16')
+    analyzer = Analyzer('D:\Repositories\QOSsimulation\Simulations\World#0#0\Run-26-11-2023-20-32-23', 11095)
     analyzer.analyze()
     analyzer.printResults()
     analyzer.writeData()

@@ -34,3 +34,24 @@ class DataLoader:
                 else:
                     failureCounts = pandas.concat([failureCounts, data])
         return failureCounts
+    
+    def loadTimeResults() -> DataFrame:
+        columns = ['WORLD', 'SEED', 'CASE_ID', 'TIME']
+        timeData = []
+        path = GetConfig().filePaths.storagePath
+        for world in path.iterdir():
+            i = 0
+            for run in world.iterdir():
+                path = run.joinpath("WorldActivity#-1.txt")
+                if not path.exists():
+                    continue
+                data = pandas.read_csv(path, delimiter=" ")
+                splits = str(path).split('#')
+                last_row = data.iloc[-1]
+                seed = splits[2].split('\\')[0]
+                entry = [splits[1], seed, i, last_row['TIME']]
+                timeData.append(entry)
+                i += 1
+        dataframe = DataFrame(timeData)
+        dataframe.columns = columns
+        return dataframe

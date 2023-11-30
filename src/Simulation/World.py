@@ -7,11 +7,12 @@ from DataOutput.TimeDataRecorder import TimeDataRecorder
 from pygame import Surface
 from pygame.font import Font
 from Simulation.Events.BusinessEvents.BusinessEvent import BusinessEvent
+from Simulation.BusinessEnvironment.Company import Company
 
 '''Objects that represents the entire simulation environment'''
 class World(object):
     
-    def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies,
+    def __init__(self, eventHandler : EventHandler, serviceAreas : list[ServiceArea], companies : list[Company],
         activityHistory : TimeDataRecorder) -> None:
         self.delayConfig = GetConfig().eventConfig.activityEventDelayRange
         self.eventHandler = eventHandler

@@ -9,9 +9,6 @@ from Evaluation.DataLoader import DataLoader
 '''Used to create plots based on aggregated data'''
 class AggregationPlotter:
     
-    def plotConfigurations(fileName : Path):
-        pass
-    
     def plotSuccessRate(fileName: Path):        
         data = pandas.read_csv(fileName, delimiter=" ")
         fig1 = plt.figure()
@@ -112,15 +109,36 @@ class AggregationPlotter:
         data['SUCCESS_RATE'] = data['SUCCESS_RATE'].apply(lambda x : x * 100)
         fig1 = plt.figure()
         ax1 = fig1.add_subplot(1,1,1)
-        ax1.set_title("MBP Activity Success Rate by Spike Duration Range")
+        ax1.set_title("QoS Satisfaction Rate by Spike Duration Range")
+        #ax1.set_title("Qos Satisfaction Rate by MBP Count")
         ax1.yaxis.set_major_formatter(mtick.PercentFormatter())
         ax1.set_ylabel("Success Rate (%)")
-        ax1.set_xlabel("Maximum Spike Duration Range")
+        ax1.set_xlabel("Maximum Latency Spike Duration Range")
+        #ax1.set_xlabel("MBP Count")
         seriesData = []
         for i in data['MAX_LATENCY_SPIKE_DURATION'].unique():
             seriesData.append(data.loc[data['MAX_LATENCY_SPIKE_DURATION'] == i]['SUCCESS_RATE'])
 
         ax1.boxplot(seriesData)
         ax1.set_xticklabels(data['MAX_LATENCY_SPIKE_DURATION'].unique())
+        ax1.set_ylim(35, 100)
         fig1.add_subplot(ax1)
         fig1.savefig(GetConfig().filePaths.plotPath.joinpath('SuccessRatesBoxPlot.png'))
+        
+    def plotTimeOverhead():
+        data = DataLoader.loadTimeResults()
+        
+        fig1 = plt.figure()
+        ax1 = fig1.add_subplot(1,1,1)
+        ax1.set_title("Time Overhead by Environment Map (World)")
+        ax1.set_xlabel("World Id")
+        ax1.set_ylabel("Simulated Time Period (s)")
+        seriesData = []
+        for i in data['WORLD'].unique():
+            seriesData.append(data.loc[data['WORLD'] == i]['TIME'])
+            
+        ax1.boxplot(seriesData)
+        ax1.set_xticklabels(data['WORLD'].unique())
+        ax1.set_ylim(10500, 12000)
+        fig1.add_subplot(ax1)
+        fig1.savefig(GetConfig().filePaths.plotPath.joinpath('TimeOverhead.png'))

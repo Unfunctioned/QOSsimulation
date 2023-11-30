@@ -34,7 +34,7 @@ class UserActivitySpikeEvent(UserActivityEvent):
         super().__init__(eventTime, area)
         durationConfig = GetConfig().eventConfig.userActivitySpikeDurationRange
         self.activityBoostDuration = GetConfig().randoms.userActivitySpikeSimulation.randint(durationConfig[0], durationConfig[1])
-        self.spike = GetConfig().randoms.userActivitySpikeSimulation.random() - GetConfig().simConfig.get_default_activity(self.area.areaType)
+        self.spike = GetConfig().randoms.userActivitySpikeSimulation.random() * (1 - self.area.default_activity)
     
     def SetSpike(self, spike, duration : int):
         self.spike = spike

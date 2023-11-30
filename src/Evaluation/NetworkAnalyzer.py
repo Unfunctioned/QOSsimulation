@@ -39,7 +39,10 @@ class NetworkAnalyzer(BaseAnalyzer):
             rowCount = len(data)
             altData = data.loc[data['Latency'] > GetConfig().serviceConfig.LATENCY_DEFAULT]
             violationTimeData = altData.apply(lambda x : self.Duration(rowCount, x, data), axis=1)
-            totalViolationTime = violationTimeData.sum()       
+            if not violationTimeData.empty:
+                totalViolationTime = violationTimeData.sum()
+            else:
+                totalViolationTime = 0
             qualityValue = (self.totalTime - totalViolationTime) / self.totalTime
             qualityMap[key] = qualityValue
             if qualityValue < self.qualityRange.min:

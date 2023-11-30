@@ -5,6 +5,7 @@ def main():
     aggregator = DataAggregator()
     aggregator.aggregate()
     AggregationPlotter.plotSuccessRateAsBoxPlot()
+    AggregationPlotter.plotTimeOverhead()
     #AggregationPlotter.plotSuccessRate(aggregator.filePaths['SUCCESS_RATE'])
     #AggregationPlotter.plotNetworkQuality(aggregator.filePaths['NETWORK_QUALITY'])
     #AggregationPlotter.plotAbsoluteActivityFailureDistribution(aggregator.filePaths['ABSOlUTE_ACTIVITY_FAILS'])
