@@ -1,13 +1,13 @@
 # QOSsimulation
 
-##Installation
+## Installation
 run the command `pip install -r /path/to/requirements.txt`
 to install the required python packages for this simulator.
 
 Check that the python environment uses the 'src' folder as working directory
 (This should be the case when using VS Code)
 
-##Setting up the simulation
+## Setting up the simulation
 To run a single simulation use 'main.py' as the start-up file.
 
 To run batch simulations with variable Latency Spike Configurations use 'repeatMain.py' as the start-up file.
