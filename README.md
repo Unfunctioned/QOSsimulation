@@ -14,8 +14,7 @@ To run batch simulations with variable Latency Spike Configurations use 'repeatM
 
 To run batch simulation with variable MBP Counts use 'userMain.py' as the start-up file.
 
-##Configuring the simulation
-
+## Configuring the simulation
 Most configurations can be set in the 'SimConfig.py' file.
 Currently only two resource allocation approaches are supported, which can be set using the SIMULATE_MODE field in 'SimConfig.py:
 - PRIORITY_FIRST (Baseline)
